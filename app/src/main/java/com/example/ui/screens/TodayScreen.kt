@@ -1,0 +1,138 @@
+package com.example.ui.screens
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import com.example.data.GrowthStatus
+import com.example.data.Habit
+import com.example.ui.components.GrowthIcon
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TodayScreen(
+    habits: List<Habit>,
+    onAddHabit: () -> Unit,
+    onHabitClick: (String) -> Unit,
+    onCheckIn: (Habit) -> Unit
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { 
+                    Column {
+                        Text("Good morning,", style = MaterialTheme.typography.titleLarge)
+                        Text("Alex", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                        Text("Your garden is growing \uD83C\uDF3F", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.secondary)
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { /* TODO */ }) {
+                        Icon(Icons.Default.Notifications, contentDescription = "Notifications")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onAddHabit,
+                icon = { Icon(Icons.Default.Add, "Add Habit") },
+                text = { Text("Add habit") },
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary
+            )
+        },
+        bottomBar = {
+            NavigationBar(containerColor = MaterialTheme.colorScheme.background) {
+                NavigationBarItem(
+                    selected = true,
+                    onClick = { },
+                    icon = { Text("\uD83C\uDF31") },
+                    label = { Text("Today") }
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { },
+                    icon = { Text("\uD83D\uDCD6") },
+                    label = { Text("Garden") }
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { },
+                    icon = { Text("\uD83C\uDFC6") },
+                    label = { Text("Milestones") }
+                )
+                NavigationBarItem(
+                    selected = false,
+                    onClick = { },
+                    icon = { Text("\uD83D\uDE42") },
+                    label = { Text("You") }
+                )
+            }
+        }
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(habits) { habit ->
+                HabitCard(habit = habit, onClick = { onHabitClick(habit.habitId) }, onCheckIn = { onCheckIn(habit) })
+            }
+            item { Spacer(modifier = Modifier.height(80.dp)) }
+        }
+    }
+}
+
+@Composable
+fun HabitCard(habit: Habit, onClick: () -> Unit, onCheckIn: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                // Placeholder icon
+                Box(modifier = Modifier.size(40.dp).background(Color.LightGray, RoundedCornerShape(8.dp)))
+                Spacer(modifier = Modifier.width(16.dp))
+                Column {
+                    Text(habit.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Text("Today's target", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+                }
+            }
+            
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.clickable { onCheckIn() }) {
+                GrowthIcon(status = GrowthStatus.SEED, modifier = Modifier.size(32.dp))
+                Text("Check in", style = MaterialTheme.typography.labelSmall)
+            }
+        }
+    }
+}
