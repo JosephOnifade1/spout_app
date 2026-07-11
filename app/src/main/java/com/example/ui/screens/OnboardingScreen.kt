@@ -96,7 +96,7 @@ fun OnboardingPage1() {
         }
         Spacer(modifier = Modifier.weight(1f))
         androidx.compose.foundation.Image(
-            painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.onboarding_first_screen_removebg),
+            painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.onboarding_first_screen),
             contentDescription = "Sprout growing in soil",
             modifier = Modifier.fillMaxWidth(),
             contentScale = androidx.compose.ui.layout.ContentScale.Fit
