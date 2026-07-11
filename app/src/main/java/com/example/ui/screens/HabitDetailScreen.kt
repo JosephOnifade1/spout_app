@@ -2,7 +2,7 @@ package com.example.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import com.example.data.GrowthStatus
 import com.example.data.Habit
 import com.example.ui.components.GrowthBedRow
+import com.example.ui.theme.IbmPlexMonoFontFamily
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,7 +28,7 @@ fun HabitDetailScreen(
                 title = { },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 },
                 actions = {
@@ -76,13 +77,13 @@ fun HabitDetailScreen(
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("Current streak", style = MaterialTheme.typography.labelLarge)
-                    Text(habit.currentStreak.toString().padStart(3, '0'), style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Bold)
+                    Text(habit.currentStreak.toString().padStart(3, '0'), style = MaterialTheme.typography.displayMedium.copy(fontFamily = IbmPlexMonoFontFamily), fontWeight = FontWeight.Bold)
                     Text("days", style = MaterialTheme.typography.labelMedium)
                 }
-                Divider(modifier = Modifier.height(60.dp).width(1.dp))
+                HorizontalDivider(modifier = Modifier.height(60.dp).width(1.dp))
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("Longest streak", style = MaterialTheme.typography.labelLarge)
-                    Text(habit.longestStreak.toString().padStart(3, '0'), style = MaterialTheme.typography.displayMedium, fontWeight = FontWeight.Bold)
+                    Text(habit.longestStreak.toString().padStart(3, '0'), style = MaterialTheme.typography.displayMedium.copy(fontFamily = IbmPlexMonoFontFamily), fontWeight = FontWeight.Bold)
                     Text("days", style = MaterialTheme.typography.labelMedium)
                 }
             }

@@ -10,6 +10,10 @@ import com.example.ui.screens.Routes
 import com.example.ui.screens.TodayScreen
 import com.example.ui.screens.OnboardingScreen
 import com.example.ui.screens.AuthScreen
+import com.example.ui.screens.AddEditHabitScreen
+import com.example.ui.screens.SettingsScreen
+import com.example.ui.screens.PaywallScreen
+import com.example.ui.screens.ShareScreen
 
 @Composable
 fun SproutApp() {
@@ -36,7 +40,7 @@ fun SproutApp() {
         composable(Routes.TODAY) {
             TodayScreen(
                 habits = habits,
-                onAddHabit = { /* TODO */ },
+                onAddHabit = { navController.navigate(Routes.ADD_EDIT_HABIT) },
                 onHabitClick = { habitId -> 
                     navController.navigate("habit_detail/$habitId") 
                 },
@@ -44,11 +48,31 @@ fun SproutApp() {
             )
         }
         composable("habit_detail/{habitId}") { backStackEntry ->
-            // In a real app, use the ID to get the habit
+            val habitId = backStackEntry.arguments?.getString("habitId")
             HabitDetailScreen(
-                habit = habits[1],
+                habit = habits.firstOrNull { it.habitId == habitId } ?: habits[1],
                 onBack = { navController.popBackStack() },
-                onEdit = { /* TODO */ }
+                onEdit = { navController.navigate(Routes.ADD_EDIT_HABIT) }
+            )
+        }
+        composable(Routes.ADD_EDIT_HABIT) {
+            AddEditHabitScreen(
+                habitId = null,
+                onSave = { navController.popBackStack() },
+                onBack = { navController.popBackStack() }
+            )
+        }
+        composable(Routes.SETTINGS) {
+            SettingsScreen()
+        }
+        composable(Routes.PAYWALL) {
+            PaywallScreen(onClose = { navController.popBackStack() })
+        }
+        composable("share/{habitId}") { backStackEntry ->
+            ShareScreen(
+                habitTitle = "Read 20 Minutes",
+                streak = 30,
+                onBack = { navController.popBackStack() }
             )
         }
     }

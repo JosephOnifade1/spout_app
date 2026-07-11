@@ -1,6 +1,7 @@
 package com.example.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,23 +24,27 @@ fun AuthScreen(onAuthSuccess: () -> Unit) {
         
         OutlinedButton(
             onClick = onAuthSuccess,
-            modifier = Modifier.fillMaxWidth().height(56.dp)
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = CircleShape
         ) {
-            Text("Continue with Apple", style = MaterialTheme.typography.titleMedium)
+            Text("Continue with Apple", style = MaterialTheme.typography.labelLarge)
         }
         Spacer(modifier = Modifier.height(16.dp))
         OutlinedButton(
             onClick = onAuthSuccess,
-            modifier = Modifier.fillMaxWidth().height(56.dp)
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = CircleShape
         ) {
-            Text("Continue with Google", style = MaterialTheme.typography.titleMedium)
+            Text("Continue with Google", style = MaterialTheme.typography.labelLarge)
         }
         Spacer(modifier = Modifier.height(16.dp))
-        OutlinedButton(
+        Button(
             onClick = onAuthSuccess,
-            modifier = Modifier.fillMaxWidth().height(56.dp)
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+            shape = CircleShape,
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
-            Text("Continue with email", style = MaterialTheme.typography.titleMedium)
+            Text("Continue with email", style = MaterialTheme.typography.labelLarge)
         }
         
         Spacer(modifier = Modifier.height(48.dp))

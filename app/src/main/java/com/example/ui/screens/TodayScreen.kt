@@ -5,10 +5,15 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.outlined.EmojiEvents
+import androidx.compose.material.icons.outlined.LocalFlorist
+import androidx.compose.material.icons.outlined.MenuBook
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -52,10 +57,11 @@ fun TodayScreen(
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = onAddHabit,
-                icon = { Icon(Icons.Default.Add, "Add Habit") },
+                icon = { Icon(Icons.Filled.Add, "Add Habit") },
                 text = { Text("Add habit") },
                 containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                shape = CircleShape
             )
         },
         bottomBar = {
@@ -63,25 +69,25 @@ fun TodayScreen(
                 NavigationBarItem(
                     selected = true,
                     onClick = { },
-                    icon = { Text("\uD83C\uDF31") },
+                    icon = { Icon(Icons.Outlined.LocalFlorist, contentDescription = "Today") },
                     label = { Text("Today") }
                 )
                 NavigationBarItem(
                     selected = false,
                     onClick = { },
-                    icon = { Text("\uD83D\uDCD6") },
+                    icon = { Icon(Icons.Outlined.MenuBook, contentDescription = "Garden") },
                     label = { Text("Garden") }
                 )
                 NavigationBarItem(
                     selected = false,
                     onClick = { },
-                    icon = { Text("\uD83C\uDFC6") },
+                    icon = { Icon(Icons.Outlined.EmojiEvents, contentDescription = "Milestones") },
                     label = { Text("Milestones") }
                 )
                 NavigationBarItem(
                     selected = false,
                     onClick = { },
-                    icon = { Text("\uD83D\uDE42") },
+                    icon = { Icon(Icons.Outlined.Person, contentDescription = "You") },
                     label = { Text("You") }
                 )
             }
@@ -92,7 +98,7 @@ fun TodayScreen(
                 .fillMaxSize()
                 .padding(padding)
                 .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(habits) { habit ->
                 HabitCard(habit = habit, onClick = { onHabitClick(habit.habitId) }, onCheckIn = { onCheckIn(habit) })
@@ -107,10 +113,10 @@ fun HabitCard(habit: Habit, onClick: () -> Unit, onCheckIn: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(24.dp))
             .clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier
@@ -121,11 +127,16 @@ fun HabitCard(habit: Habit, onClick: () -> Unit, onCheckIn: () -> Unit) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 // Placeholder icon
-                Box(modifier = Modifier.size(40.dp).background(Color.LightGray, RoundedCornerShape(8.dp)))
+                Box(
+                    modifier = Modifier.size(48.dp).background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Outlined.LocalFlorist, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
+                }
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
-                    Text(habit.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Text("Today's target", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+                    Text(habit.title, style = MaterialTheme.typography.titleLarge)
+                    Text("Today's target", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.secondary)
                 }
             }
             

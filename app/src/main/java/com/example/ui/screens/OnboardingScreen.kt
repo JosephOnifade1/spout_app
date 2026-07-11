@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,12 +24,14 @@ fun OnboardingScreen(onComplete: () -> Unit) {
     val pagerState = rememberPagerState(pageCount = { 3 })
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             if (pagerState.currentPage == 2) {
                 PaddingValues(16.dp)
                 Button(
                     onClick = onComplete,
-                    modifier = Modifier.fillMaxWidth().padding(16.dp).height(56.dp)
+                    modifier = Modifier.fillMaxWidth().padding(16.dp).height(56.dp),
+                    shape = CircleShape
                 ) {
                     Text("Plant your first habit", style = MaterialTheme.typography.titleMedium)
                 }
@@ -69,19 +72,34 @@ fun OnboardingScreen(onComplete: () -> Unit) {
 @Composable
 fun OnboardingPage1() {
     Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
+        modifier = Modifier.fillMaxSize().padding(top = 64.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Top
     ) {
-        Text("Habits\nwithout the\nguilt trip.", 
-            style = MaterialTheme.typography.displayMedium, 
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(32.dp))
-        Text("Missed days don't erase your progress. Your growth continues, always.", 
-            style = MaterialTheme.typography.bodyLarge, 
-            textAlign = TextAlign.Center
+        Column(
+            modifier = Modifier.padding(horizontal = 32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("Habits\nwithout the\nguilt trip.", 
+                style = MaterialTheme.typography.displayMedium, 
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text("〰", style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
+            Spacer(modifier = Modifier.height(24.dp))
+            Text("Missed days don't erase\nyour progress. Your growth\ncontinues, always.", 
+                style = MaterialTheme.typography.bodyLarge, 
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        androidx.compose.foundation.Image(
+            painter = androidx.compose.ui.res.painterResource(id = com.example.R.drawable.onboarding_first_screen_removebg),
+            contentDescription = "Sprout growing in soil",
+            modifier = Modifier.fillMaxWidth(),
+            contentScale = androidx.compose.ui.layout.ContentScale.Fit
         )
     }
 }
@@ -133,9 +151,11 @@ fun OnboardingPage3() {
 fun ReminderOptionCard(title: String, subtitle: String, selected: Boolean) {
     Card(
         modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface
-        )
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(modifier = Modifier.weight(1f)) {

@@ -1,22 +1,21 @@
-package com.example.repository
+package com.example.data.repository
 
 import com.example.data.CheckIn
 import com.example.data.GrowthStatus
 import com.example.data.Habit
 import com.example.data.User
+import com.example.domain.repository.HabitRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 
-class HabitRepository {
+class HabitRepositoryImpl : HabitRepository {
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
 
-    fun getHabits(): Flow<List<Habit>> = flow {
+    override fun getHabits(): Flow<List<Habit>> = flow {
         val uid = auth.currentUser?.uid ?: return@flow
         try {
             val snapshot = db.collection("habits")
@@ -31,7 +30,7 @@ class HabitRepository {
         }
     }
 
-    fun getRecentCheckIns(habitId: String): Flow<List<CheckIn>> = flow {
+    override fun getRecentCheckIns(habitId: String): Flow<List<CheckIn>> = flow {
         try {
             val snapshot = db.collection("check_ins")
                 .whereEqualTo("habitId", habitId)
@@ -47,7 +46,7 @@ class HabitRepository {
         }
     }
 
-    suspend fun checkIn(habit: Habit, date: String, status: GrowthStatus) {
+    override suspend fun checkIn(habit: Habit, date: String, status: GrowthStatus) {
         val uid = auth.currentUser?.uid ?: return
         val checkIn = CheckIn(
             habitId = habit.habitId,
@@ -68,7 +67,7 @@ class HabitRepository {
         }
     }
 
-    suspend fun saveHabit(habit: Habit) {
+    override suspend fun saveHabit(habit: Habit) {
         val uid = auth.currentUser?.uid ?: return
         val newHabit = habit.copy(userId = uid)
         try {
