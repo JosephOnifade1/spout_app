@@ -250,7 +250,7 @@ fun ExportableCardContent(habitTitle: String, streak: Int) {
                     textAlign = TextAlign.Center
                 )
                 Text(
-                    "days",
+                    "growth points",
                     style = SproutTypography.BodyLarge,
                     textAlign = TextAlign.Center
                 )

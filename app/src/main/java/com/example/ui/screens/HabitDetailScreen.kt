@@ -101,25 +101,32 @@ fun HabitDetailScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Current streak", style = MaterialTheme.typography.labelLarge)
+                    Text("Total growth", style = MaterialTheme.typography.labelLarge)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = habit.currentStreak.toString().padStart(3, '0'),
+                        text = habit.growthPoints.toString().padStart(3, '0'),
                         style = SproutTypography.TechnicalMono.copy(fontSize = 45.sp),
                         fontWeight = FontWeight.Medium
                     )
-                    Text("days", style = MaterialTheme.typography.labelMedium)
+                    Text("points", style = MaterialTheme.typography.labelMedium)
                 }
-                HorizontalDivider(modifier = Modifier.height(80.dp).width(1.dp))
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Longest streak", style = MaterialTheme.typography.labelLarge)
+                    Text("Current stage", style = MaterialTheme.typography.labelLarge)
                     Spacer(modifier = Modifier.height(8.dp))
+                    val currentStatus = when {
+                        habit.growthPoints < 5 -> GrowthStatus.SEED
+                        habit.growthPoints < 15 -> GrowthStatus.SPROUT
+                        habit.growthPoints < 30 -> GrowthStatus.BUD
+                        else -> GrowthStatus.BLOOM
+                    }
                     Text(
-                        text = habit.longestStreak.toString().padStart(3, '0'),
-                        style = SproutTypography.TechnicalMono.copy(fontSize = 45.sp),
-                        fontWeight = FontWeight.Medium
+                        text = currentStatus.value.uppercase(),
+                        style = SproutTypography.TechnicalMono.copy(fontSize = 20.sp),
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.padding(vertical = 12.dp)
                     )
-                    Text("days", style = MaterialTheme.typography.labelMedium)
+                    Text("nourishing", style = MaterialTheme.typography.labelMedium)
                 }
             }
             

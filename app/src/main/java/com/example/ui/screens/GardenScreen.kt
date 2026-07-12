@@ -40,7 +40,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 enum class GardenSortOption {
-    MANUAL, CONSISTENT, STREAK, NEWEST
+    MANUAL, CONSISTENT, GROWTH, NEWEST
 }
 
 @Composable
@@ -101,7 +101,7 @@ fun GardenScreen(
             GardenSortOption.CONSISTENT -> activeHabits.sortedByDescending { habit ->
                 allCheckIns.filter { it.habitId == habit.habitId }.map { it.date }.distinct().size
             }
-            GardenSortOption.STREAK -> activeHabits.sortedByDescending { it.currentStreak }
+            GardenSortOption.GROWTH -> activeHabits.sortedByDescending { it.growthPoints }
             GardenSortOption.NEWEST -> activeHabits.sortedByDescending { it.createdAt }
         }
     }
@@ -192,9 +192,9 @@ fun GardenScreen(
                     ) {
                         activeHabits.take(5).forEach { habit ->
                             val status = when {
-                                habit.currentStreak == 0 -> GrowthStatus.SEED
-                                habit.currentStreak in 1..2 -> GrowthStatus.SPROUT
-                                habit.currentStreak in 3..6 -> GrowthStatus.BUD
+                                habit.growthPoints < 5 -> GrowthStatus.SEED
+                                habit.growthPoints < 15 -> GrowthStatus.SPROUT
+                                habit.growthPoints < 30 -> GrowthStatus.BUD
                                 else -> GrowthStatus.BLOOM
                             }
                             GrowthIcon(status = status, modifier = Modifier.size(90.dp))
@@ -279,7 +279,7 @@ fun GardenScreen(
                             text = when(option) {
                                 GardenSortOption.MANUAL -> "Manual order"
                                 GardenSortOption.CONSISTENT -> "Most consistent this week"
-                                GardenSortOption.STREAK -> "Longest streak"
+                                GardenSortOption.GROWTH -> "Most total growth"
                                 GardenSortOption.NEWEST -> "Newest first"
                             }
                         )
@@ -479,6 +479,6 @@ fun findStrongestHabit(habits: List<Habit>, allCheckIns: List<CheckIn>): Habit? 
     val tiedHabits = weeklyCounts.filter { it.value == maxCount }.keys.toList()
     if (tiedHabits.size == 1) return tiedHabits[0]
     
-    // Tiebreaker: Longest current streak
-    return tiedHabits.maxByOrNull { it.currentStreak }
+    // Tiebreaker: Most growth points
+    return tiedHabits.maxByOrNull { it.growthPoints }
 }

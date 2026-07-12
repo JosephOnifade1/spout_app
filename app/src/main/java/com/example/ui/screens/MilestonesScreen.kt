@@ -47,9 +47,10 @@ fun MilestonesScreen(
     val inProgressMilestones = remember(habits) {
         habits.filter { !it.archived }.mapNotNull { habit ->
             val nextTier = when {
-                habit.currentStreak < 7 -> 7
-                habit.currentStreak < 30 -> 30
-                habit.currentStreak < 100 -> 100
+                habit.growthPoints < 10 -> 10
+                habit.growthPoints < 25 -> 25
+                habit.growthPoints < 50 -> 50
+                habit.growthPoints < 100 -> 100
                 else -> null
             }
             if (nextTier != null) {
@@ -213,7 +214,7 @@ fun MilestoneCard(milestone: Milestone, index: Int) {
                     )
                 }
                 Text(
-                    "${milestone.tier} day streak",
+                    "${milestone.tier} growth points",
                     style = SproutTypography.BodyMedium
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -304,7 +305,7 @@ fun InProgressMilestoneCard(habit: Habit, nextTier: Int, index: Int) {
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    val progress = habit.currentStreak.toFloat() / nextTier.toFloat()
+                    val progress = habit.growthPoints.toFloat() / nextTier.toFloat()
                     LinearProgressIndicator(
                         progress = { progress },
                         modifier = Modifier.weight(1f).height(8.dp).clip(RoundedCornerShape(4.dp)),
@@ -313,14 +314,14 @@ fun InProgressMilestoneCard(habit: Habit, nextTier: Int, index: Int) {
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        "${habit.currentStreak}/$nextTier",
+                        "${habit.growthPoints}/$nextTier",
                         style = SproutTypography.TechnicalMono.copy(fontSize = 12.sp),
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                     )
                 }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    "${habit.currentStreak} of $nextTier days",
+                    "${habit.growthPoints} of $nextTier points",
                     style = SproutTypography.BodyMedium.copy(fontSize = 12.sp),
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                 )

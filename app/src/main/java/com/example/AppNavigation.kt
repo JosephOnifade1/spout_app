@@ -175,7 +175,7 @@ fun SproutApp() {
             if (habit != null) {
                 ShareScreen(
                     habitTitle = habit.title,
-                    streak = habit.currentStreak,
+                    streak = habit.growthPoints,
                     onBack = { navController.popBackStack() }
                 )
             }

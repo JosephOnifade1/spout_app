@@ -37,28 +37,43 @@ class HabitRepositoryImpl : HabitRepository {
         list.filter { it.habitId == habitId }.sortedBy { it.date }.takeLast(7)
     }
 
+    private fun calculateGrowthStatus(points: Int): GrowthStatus {
+        return when {
+            points < 5 -> GrowthStatus.SEED
+            points < 15 -> GrowthStatus.SPROUT
+            points < 30 -> GrowthStatus.BUD
+            else -> GrowthStatus.BLOOM
+        }
+    }
+
     override suspend fun checkIn(habit: Habit, date: String, status: GrowthStatus): Milestone? {
+        val newPoints = habit.growthPoints + 1
+        val newStatus = calculateGrowthStatus(newPoints)
+        
         val newCheckIn = CheckIn(
             habitId = habit.habitId,
             userId = "local_user",
             date = date,
-            status = status.value
+            status = newStatus.value
         )
         checkIns.value = checkIns.value + newCheckIn
         
+        // Still keep streak logic for now but prioritize growth points for status and milestones
         val newStreak = habit.currentStreak + 1
         val updatedHabit = habit.copy(
             currentStreak = newStreak,
-            longestStreak = maxOf(habit.longestStreak, newStreak)
+            longestStreak = maxOf(habit.longestStreak, newStreak),
+            growthPoints = newPoints
         )
         habits.value = habits.value.map { if (it.habitId == habit.habitId) updatedHabit else it }
 
-        // Trigger Milestone if streak crosses 7, 30, or 100
-        if (newStreak == 7 || newStreak == 30 || newStreak == 100) {
+        // Trigger Milestone if cumulative growth crosses 10, 25, 50, 100
+        val milestonesToTrigger = listOf(10, 25, 50, 100)
+        if (newPoints in milestonesToTrigger) {
             val milestone = Milestone(
                 habitId = habit.habitId,
                 habitTitle = habit.title,
-                tier = newStreak,
+                tier = newPoints,
                 dateReached = LocalDate.now().format(DateTimeFormatter.ofPattern("MMM d, yyyy")),
                 encouragementLine = encouragementPhrases.random()
             )

@@ -55,7 +55,7 @@ fun MilestoneModal(
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
-                        "You've kept this growing for",
+                        "You've nurtured this for",
                         style = SproutTypography.BodyLarge,
                         textAlign = TextAlign.Center
                     )
@@ -66,7 +66,7 @@ fun MilestoneModal(
                         textAlign = TextAlign.Center
                     )
                     Text(
-                        "days",
+                        "growth points",
                         style = SproutTypography.BodyLarge,
                         textAlign = TextAlign.Center
                     )

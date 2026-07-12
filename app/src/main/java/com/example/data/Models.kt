@@ -25,6 +25,7 @@ data class Habit(
     val reminderEnabled: Boolean = true,
     val currentStreak: Int = 0,
     val longestStreak: Int = 0,
+    val growthPoints: Int = 0,
     val archived: Boolean = false,
     val sortOrder: Int = 0,
     val createdAt: Long = System.currentTimeMillis()
