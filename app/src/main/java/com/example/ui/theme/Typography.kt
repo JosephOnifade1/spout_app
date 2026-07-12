@@ -1,7 +1,6 @@
 package com.example.ui.theme
 
 import androidx.compose.material3.Typography
-import androidx.compose.ui.text.ExperimentalTextApi
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -10,113 +9,111 @@ import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.sp
 import com.example.R
 
-@OptIn(ExperimentalTextApi::class)
-val provider = GoogleFont.Provider(
+private val provider = GoogleFont.Provider(
     providerAuthority = "com.google.android.gms.fonts",
     providerPackage = "com.google.android.gms",
     certificates = R.array.com_google_android_gms_fonts_certs
 )
 
-@OptIn(ExperimentalTextApi::class)
 val FrauncesFontFamily = FontFamily(
     Font(googleFont = GoogleFont("Fraunces"), fontProvider = provider)
 )
 
-@OptIn(ExperimentalTextApi::class)
 val PublicSansFontFamily = FontFamily(
     Font(googleFont = GoogleFont("Public Sans"), fontProvider = provider)
 )
 
-@OptIn(ExperimentalTextApi::class)
 val IbmPlexMonoFontFamily = FontFamily(
     Font(googleFont = GoogleFont("IBM Plex Mono"), fontProvider = provider)
 )
 
-val Typography = Typography(
-    displayLarge = TextStyle(
+/**
+ * SproutTypography defines the core brand styles for the Sprout application.
+ * It uses Fraunces for display and headings, and IBM Plex Mono for technical/numeric data.
+ */
+object SproutTypography {
+    val HeadlineLarge = TextStyle(
         fontFamily = FrauncesFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 57.sp,
-        lineHeight = 64.sp,
-        letterSpacing = (-0.25).sp
-    ),
-    displayMedium = TextStyle(
-        fontFamily = FrauncesFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 45.sp,
-        lineHeight = 52.sp,
-        letterSpacing = 0.sp
-    ),
-    displaySmall = TextStyle(
-        fontFamily = FrauncesFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 36.sp,
-        lineHeight = 44.sp,
-        letterSpacing = 0.sp
-    ),
-    headlineLarge = TextStyle(
-        fontFamily = FrauncesFontFamily,
-        fontWeight = FontWeight.Normal,
+        fontWeight = FontWeight.Bold,
         fontSize = 32.sp,
         lineHeight = 40.sp,
         letterSpacing = 0.sp
-    ),
-    headlineMedium = TextStyle(
+    )
+    
+    val HeadlineMedium = TextStyle(
         fontFamily = FrauncesFontFamily,
-        fontWeight = FontWeight.Normal,
+        fontWeight = FontWeight.Bold,
         fontSize = 28.sp,
         lineHeight = 36.sp,
         letterSpacing = 0.sp
-    ),
-    headlineSmall = TextStyle(
+    )
+    
+    val HeadlineSmall = TextStyle(
         fontFamily = FrauncesFontFamily,
-        fontWeight = FontWeight.Normal,
+        fontWeight = FontWeight.Bold,
         fontSize = 24.sp,
         lineHeight = 32.sp,
         letterSpacing = 0.sp
-    ),
-    titleLarge = TextStyle(
+    )
+
+    val TitleLarge = TextStyle(
         fontFamily = FrauncesFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 22.sp,
         lineHeight = 28.sp,
         letterSpacing = 0.sp
-    ),
-    titleMedium = TextStyle(
+    )
+
+    val TitleMedium = TextStyle(
         fontFamily = FrauncesFontFamily,
         fontWeight = FontWeight.Medium,
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.15.sp
-    ),
-    titleSmall = TextStyle(
-        fontFamily = FrauncesFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 14.sp,
-        lineHeight = 20.sp,
-        letterSpacing = 0.1.sp
-    ),
-    bodyLarge = TextStyle(
+    )
+
+    val BodyLarge = TextStyle(
         fontFamily = PublicSansFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
-    ),
-    bodyMedium = TextStyle(
+    )
+
+    val BodyMedium = TextStyle(
         fontFamily = PublicSansFontFamily,
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
         lineHeight = 20.sp,
         letterSpacing = 0.25.sp
-    ),
-    bodySmall = TextStyle(
-        fontFamily = PublicSansFontFamily,
-        fontWeight = FontWeight.Normal,
-        fontSize = 12.sp,
+    )
+
+    val TechnicalMono = TextStyle(
+        fontFamily = IbmPlexMonoFontFamily,
+        fontWeight = FontWeight.Bold,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.5.sp
+    )
+
+    val LabelSmallMono = TextStyle(
+        fontFamily = IbmPlexMonoFontFamily,
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
         lineHeight = 16.sp,
-        letterSpacing = 0.4.sp
-    ),
+        letterSpacing = 0.5.sp
+    )
+}
+
+val AppTypography = Typography(
+    headlineLarge = SproutTypography.HeadlineLarge,
+    headlineMedium = SproutTypography.HeadlineMedium,
+    headlineSmall = SproutTypography.HeadlineSmall,
+    titleLarge = SproutTypography.TitleLarge,
+    titleMedium = SproutTypography.TitleMedium,
+    bodyLarge = SproutTypography.BodyLarge,
+    bodyMedium = SproutTypography.BodyMedium,
+    bodySmall = SproutTypography.LabelSmallMono,
     labelLarge = TextStyle(
         fontFamily = PublicSansFontFamily,
         fontWeight = FontWeight.Medium,
@@ -131,11 +128,5 @@ val Typography = Typography(
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp
     ),
-    labelSmall = TextStyle(
-        fontFamily = PublicSansFontFamily,
-        fontWeight = FontWeight.Medium,
-        fontSize = 11.sp,
-        lineHeight = 16.sp,
-        letterSpacing = 0.5.sp
-    )
+    labelSmall = SproutTypography.LabelSmallMono
 )

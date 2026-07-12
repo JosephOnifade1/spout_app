@@ -3,77 +3,137 @@ package com.example.data.repository
 import com.example.data.CheckIn
 import com.example.data.GrowthStatus
 import com.example.data.Habit
-import com.example.data.User
+import com.example.data.Milestone
 import com.example.domain.repository.HabitRepository
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.UUID
 
 class HabitRepositoryImpl : HabitRepository {
-    private val auth = FirebaseAuth.getInstance()
-    private val db = FirebaseFirestore.getInstance()
+    private val habits = MutableStateFlow<List<Habit>>(emptyList())
+    private val checkIns = MutableStateFlow<List<CheckIn>>(emptyList())
+    private val milestones = MutableStateFlow<List<Milestone>>(emptyList())
 
-    override fun getHabits(): Flow<List<Habit>> = flow {
-        val uid = auth.currentUser?.uid ?: return@flow
-        try {
-            val snapshot = db.collection("habits")
-                .whereEqualTo("userId", uid)
-                .get()
-                .await()
-            val habits = snapshot.documents.mapNotNull { it.toObject(Habit::class.java) }
-            emit(habits)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            emit(emptyList())
-        }
+    private val db = try {
+        FirebaseFirestore.getInstance()
+    } catch (e: Exception) {
+        null
     }
 
-    override fun getRecentCheckIns(habitId: String): Flow<List<CheckIn>> = flow {
-        try {
-            val snapshot = db.collection("check_ins")
-                .whereEqualTo("habitId", habitId)
-                .orderBy("date")
-                .limitToLast(7)
-                .get()
-                .await()
-            val checkIns = snapshot.documents.mapNotNull { it.toObject(CheckIn::class.java) }
-            emit(checkIns)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            emit(emptyList())
-        }
+    private val encouragementPhrases = listOf(
+        "You've kept this growing.",
+        "Every drop counts.",
+        "Mindful and consistent.",
+        "Incredible dedication."
+    )
+
+    override fun getHabits(): Flow<List<Habit>> = habits
+
+    override fun getRecentCheckIns(habitId: String): Flow<List<CheckIn>> = checkIns.map { list ->
+        list.filter { it.habitId == habitId }.sortedBy { it.date }.takeLast(7)
     }
 
-    override suspend fun checkIn(habit: Habit, date: String, status: GrowthStatus) {
-        val uid = auth.currentUser?.uid ?: return
-        val checkIn = CheckIn(
+    override suspend fun checkIn(habit: Habit, date: String, status: GrowthStatus): Milestone? {
+        val newCheckIn = CheckIn(
             habitId = habit.habitId,
-            userId = uid,
+            userId = "local_user",
             date = date,
             status = status.value
         )
-        try {
-            db.collection("check_ins").document(checkIn.checkInId).set(checkIn).await()
-            // In a real app we would compute the new streak here and update the habit doc
-            val updatedHabit = habit.copy(
-                currentStreak = habit.currentStreak + 1,
-                longestStreak = maxOf(habit.longestStreak, habit.currentStreak + 1)
+        checkIns.value = checkIns.value + newCheckIn
+        
+        val newStreak = habit.currentStreak + 1
+        val updatedHabit = habit.copy(
+            currentStreak = newStreak,
+            longestStreak = maxOf(habit.longestStreak, newStreak)
+        )
+        habits.value = habits.value.map { if (it.habitId == habit.habitId) updatedHabit else it }
+
+        // Trigger Milestone if streak crosses 7, 30, or 100
+        if (newStreak == 7 || newStreak == 30 || newStreak == 100) {
+            val milestone = Milestone(
+                habitId = habit.habitId,
+                habitTitle = habit.title,
+                tier = newStreak,
+                dateReached = LocalDate.now().format(DateTimeFormatter.ofPattern("MMM d, yyyy")),
+                encouragementLine = encouragementPhrases.random()
             )
-            db.collection("habits").document(habit.habitId).set(updatedHabit).await()
-        } catch (e: Exception) {
-            e.printStackTrace()
+            saveMilestone(milestone)
+            return milestone
         }
+        return null
     }
 
     override suspend fun saveHabit(habit: Habit) {
-        val uid = auth.currentUser?.uid ?: return
-        val newHabit = habit.copy(userId = uid)
-        try {
-            db.collection("habits").document(newHabit.habitId).set(newHabit).await()
-        } catch (e: Exception) {
-            e.printStackTrace()
+        val existing = habits.value.find { it.habitId == habit.habitId }
+        if (existing != null) {
+            habits.value = habits.value.map { if (it.habitId == habit.habitId) habit else it }
+        } else {
+            habits.value = habits.value + habit.copy(userId = "local_user")
         }
+    }
+
+    override suspend fun initializeDefaultHabits() {
+        if (habits.value.isEmpty()) {
+            val defaultHabits = listOf(
+                Habit(
+                    habitId = UUID.randomUUID().toString(),
+                    userId = "local_user",
+                    title = "Drink Water", targetText = "6 glasses",
+                    iconKey = "water",
+                    colorTag = "moss",
+                    sortOrder = 0
+                ),
+                Habit(
+                    habitId = UUID.randomUUID().toString(),
+                    userId = "local_user",
+                    title = "Read 20 Minutes",
+                    iconKey = "read",
+                    colorTag = "dustyClay",
+                    sortOrder = 1
+                ),
+                Habit(
+                    habitId = UUID.randomUUID().toString(),
+                    userId = "local_user",
+                    title = "Meditate", targetText = "10 min",
+                    iconKey = "meditate",
+                    colorTag = "inkTeal",
+                    sortOrder = 2
+                )
+            )
+            habits.value = defaultHabits
+        }
+    }
+
+    override suspend fun updateHabitOrder(habitIds: List<String>) {
+        habits.value = habits.value.map { habit ->
+            val index = habitIds.indexOf(habit.habitId)
+            if (index != -1) habit.copy(sortOrder = index) else habit
+        }
+    }
+
+    override fun getWeeklyCheckIns(days: Int): Flow<List<CheckIn>> = checkIns.map { list ->
+        val cutoffDate = LocalDate.now().minusDays(days.toLong())
+        list.filter { checkIn ->
+            try {
+                LocalDate.parse(checkIn.date).isAfter(cutoffDate) || LocalDate.parse(checkIn.date).isEqual(cutoffDate)
+            } catch (e: Exception) {
+                false
+            }
+        }
+    }
+
+    override fun getMilestones(): Flow<List<Milestone>> = milestones
+
+    override suspend fun saveMilestone(milestone: Milestone) {
+        // Save to local flow for immediate UI update
+        milestones.value = (milestones.value + milestone).sortedByDescending { it.dateReached }
+        
+        // Save to Firestore if available
+        db?.collection("milestones")?.add(milestone)
     }
 }

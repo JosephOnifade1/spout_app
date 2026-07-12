@@ -16,6 +16,7 @@ data class Habit(
     val habitId: String = UUID.randomUUID().toString(),
     val userId: String = "",
     val title: String = "",
+    val targetText: String? = null,
     val iconKey: String = "water",
     val colorTag: String = "moss",
     val frequency: String = "Daily",
@@ -27,6 +28,16 @@ data class Habit(
     val archived: Boolean = false,
     val sortOrder: Int = 0,
     val createdAt: Long = System.currentTimeMillis()
+)
+
+data class Milestone(
+    val milestoneId: String = UUID.randomUUID().toString(),
+    val habitId: String = "",
+    val userId: String = "local_user",
+    val habitTitle: String = "",
+    val tier: Int = 0, // 7, 30, 100
+    val dateReached: String = "",
+    val encouragementLine: String = ""
 )
 
 data class CheckIn(

@@ -10,8 +10,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.example.R
 import com.example.data.GrowthStatus
+import com.example.ui.theme.AppIcons
 
 @Composable
 fun GrowthIcon(status: GrowthStatus, modifier: Modifier = Modifier) {
@@ -22,11 +22,11 @@ fun GrowthIcon(status: GrowthStatus, modifier: Modifier = Modifier) {
     )
 
     val iconRes = when (status) {
-        GrowthStatus.SEED -> R.drawable.ic_status_seed
-        GrowthStatus.SPROUT -> R.drawable.ic_status_sprout
-        GrowthStatus.BUD -> R.drawable.ic_status_bud
-        GrowthStatus.BLOOM -> R.drawable.ic_status_bloom
-        GrowthStatus.RESTING -> R.drawable.ic_status_resting
+        GrowthStatus.SEED -> AppIcons.GrowthSeed
+        GrowthStatus.SPROUT -> AppIcons.GrowthSprout
+        GrowthStatus.BUD -> AppIcons.GrowthBud
+        GrowthStatus.BLOOM -> AppIcons.GrowthBloom
+        GrowthStatus.RESTING -> AppIcons.GrowthResting
     }
 
     Image(

@@ -2,10 +2,10 @@ package com.example.ui.screens
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -18,12 +18,13 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun PaywallScreen(onClose: () -> Unit) {
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
                 title = {},
                 actions = {
                     IconButton(onClick = onClose) {
-                        Icon(Icons.Default.Close, contentDescription = "Close")
+                        Text("✕", style = MaterialTheme.typography.titleLarge)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
@@ -31,14 +32,15 @@ fun PaywallScreen(onClose: () -> Unit) {
         }
     ) { padding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(padding).padding(24.dp),
+            modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 24.dp).verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Grow more habits", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+            Text("Grow more habits", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Normal)
             Spacer(modifier = Modifier.height(16.dp))
             Text("More space. More support.\nMore ways to grow.", 
-                style = MaterialTheme.typography.bodyLarge, 
-                textAlign = TextAlign.Center
+                 style = MaterialTheme.typography.bodyLarge, 
+                 textAlign = TextAlign.Center,
+                 color = MaterialTheme.colorScheme.onBackground.copy(alpha=0.8f)
             )
             
             Spacer(modifier = Modifier.height(48.dp))
@@ -60,16 +62,22 @@ fun PaywallScreen(onClose: () -> Unit) {
                 )
             }
             
-            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.height(48.dp))
             
             Button(
                 onClick = { /* TODO */ },
-                modifier = Modifier.fillMaxWidth().height(56.dp)
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = CircleShape,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
             ) {
                 Text("Start growing — $5/mo.")
             }
             Spacer(modifier = Modifier.height(16.dp))
-            Text("Cancel anytime. No guilt if you do.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+            Text("Cancel anytime. No guilt if you do.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onBackground.copy(alpha=0.6f))
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }
@@ -78,21 +86,23 @@ fun PaywallScreen(onClose: () -> Unit) {
 fun PlanCard(title: String, subtitle: String, features: List<String>, modifier: Modifier = Modifier, selected: Boolean) {
     Card(
         modifier = modifier.then(
-            if (selected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(16.dp))
+            if (selected) Modifier.border(2.dp, MaterialTheme.colorScheme.primary, RoundedCornerShape(24.dp))
             else Modifier
         ),
+        shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (selected) MaterialTheme.colorScheme.surface else MaterialTheme.colorScheme.background
-        )
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (selected) 2.dp else 0.dp)
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(24.dp)) {
             Text(title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onBackground.copy(alpha=0.6f))
+            Spacer(modifier = Modifier.height(24.dp))
             features.forEach { feature ->
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 4.dp)) {
-                    Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
-                    Spacer(modifier = Modifier.width(8.dp))
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 6.dp)) {
+                    Text("✓ ", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
                     Text(feature, style = MaterialTheme.typography.bodySmall)
                 }
             }
