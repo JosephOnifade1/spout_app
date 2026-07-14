@@ -17,4 +17,8 @@ interface HabitRepository {
     
     fun getMilestones(): Flow<List<Milestone>>
     suspend fun saveMilestone(milestone: Milestone)
+
+    fun getSubscriptionTier(): Flow<String>
+    suspend fun updateSubscriptionTier(tier: String)
+    fun canAddHabit(): Flow<Boolean>
 }

@@ -86,6 +86,9 @@ fun SoilBedMound(modifier: Modifier = Modifier) {
 fun GardenScreen(
     habits: List<Habit>,
     allCheckIns: List<CheckIn>,
+    canAddHabit: Boolean,
+    subscriptionTier: String,
+    onAddHabit: () -> Unit,
     onHabitClick: (String) -> Unit,
     onReorderHabits: (List<String>) -> Unit,
     onNavigateToTab: (String) -> Unit
@@ -94,6 +97,9 @@ fun GardenScreen(
     var showSortMenu by remember { mutableStateOf(false) }
 
     val activeHabits = habits.filter { !it.archived }
+    
+    // Check if downgraded with more than 3 active habits
+    val showDowngradeNote = subscriptionTier == "free" && activeHabits.size > 3
     
     val sortedHabits = remember(activeHabits, sortOption) {
         when (sortOption) {
@@ -154,6 +160,21 @@ fun GardenScreen(
                         "Your Garden",
                         style = MaterialTheme.typography.headlineLarge
                     )
+                    
+                    if (showDowngradeNote) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier.padding(start = 16.dp).weight(1f)
+                        ) {
+                            Text(
+                                "You have ${activeHabits.size} habits growing — resubscribe anytime to keep planting more",
+                                modifier = Modifier.padding(8.dp),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        }
+                    }
                     
                     OutlinedIconButton(
                         onClick = { showSortMenu = true },
@@ -238,20 +259,20 @@ fun GardenScreen(
             item {
                 Spacer(modifier = Modifier.height(24.dp))
                 Button(
-                    onClick = { /* TODO */ },
+                    onClick = onAddHabit,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 24.dp)
                         .height(56.dp),
                     shape = RoundedCornerShape(28.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                        containerColor = if (canAddHabit) MaterialTheme.colorScheme.primary.copy(alpha = 0.8f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
                         contentColor = Color.White
                     )
                 ) {
                     Icon(imageVector = Icons.Default.Add, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Add habit", style = MaterialTheme.typography.titleMedium)
+                    Text(if (canAddHabit) "Add habit" else "Upgrade to add", style = MaterialTheme.typography.titleMedium)
                 }
             }
         }

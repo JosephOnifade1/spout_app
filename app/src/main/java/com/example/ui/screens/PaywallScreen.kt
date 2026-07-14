@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PaywallScreen(onClose: () -> Unit) {
+fun PaywallScreen(onClose: () -> Unit, message: String? = null) {
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -35,6 +35,22 @@ fun PaywallScreen(onClose: () -> Unit) {
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 24.dp).verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            if (message != null) {
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+                    shape = RoundedCornerShape(16.dp),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
+                ) {
+                    Text(
+                        message,
+                        modifier = Modifier.padding(16.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        textAlign = TextAlign.Center,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            
             Text("Grow more habits", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Normal)
             Spacer(modifier = Modifier.height(16.dp))
             Text("More space. More support.\nMore ways to grow.", 

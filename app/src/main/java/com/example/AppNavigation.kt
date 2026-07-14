@@ -9,19 +9,23 @@ import com.example.data.Habit
 import com.example.data.Milestone
 import com.example.data.repository.HabitRepositoryImpl
 import com.example.ui.screens.*
+import com.example.ui.theme.ThemeViewModel
 import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 @Composable
-fun SproutApp() {
+fun SproutApp(themeViewModel: ThemeViewModel) {
     val navController = rememberNavController()
     val repository = remember { HabitRepositoryImpl() }
     val habits by repository.getHabits().collectAsState(initial = emptyList())
     val allCheckIns by repository.getWeeklyCheckIns().collectAsState(initial = emptyList())
+    val canAddHabit by repository.canAddHabit().collectAsState(initial = true)
+    val subscriptionTier by repository.getSubscriptionTier().collectAsState(initial = "free")
     val coroutineScope = rememberCoroutineScope()
     var milestoneToCelebrate by remember { mutableStateOf<Milestone?>(null) }
+    var paywallMessage by remember { mutableStateOf<String?>(null) }
 
     milestoneToCelebrate?.let { milestone ->
         MilestoneModal(
@@ -48,7 +52,14 @@ fun SproutApp() {
         composable(Routes.TODAY) {
             TodayScreen(
                 habits = habits,
-                onAddHabit = { navController.navigate(Routes.ADD_EDIT_HABIT) },
+                onAddHabit = { 
+                    if (canAddHabit) {
+                        navController.navigate(Routes.ADD_EDIT_HABIT)
+                    } else {
+                        paywallMessage = "You've planted 3 habits — upgrade to plant more"
+                        navController.navigate(Routes.PAYWALL)
+                    }
+                },
                 onHabitClick = { habitId -> 
                      navController.navigate("habit_detail/$habitId") 
                  },
@@ -89,7 +100,24 @@ fun SproutApp() {
                     habit = habit,
                     recentCheckIns = recentCheckIns,
                     onBack = { navController.popBackStack() },
-                    onEdit = { navController.navigate("edit_habit/${habit.habitId}") }
+                    onEdit = { navController.navigate("edit_habit/${habit.habitId}") },
+                    onArchive = { h ->
+                        coroutineScope.launch {
+                            repository.saveHabit(h.copy(archived = true))
+                            navController.popBackStack()
+                        }
+                    },
+                    onUnarchive = { h ->
+                        if (canAddHabit) {
+                            coroutineScope.launch {
+                                repository.saveHabit(h.copy(archived = false))
+                                navController.popBackStack()
+                            }
+                        } else {
+                            paywallMessage = "You've already got 3 active habits. Upgrade to grow more, or archive one first."
+                            navController.navigate(Routes.PAYWALL)
+                        }
+                    }
                 )
             }
         }
@@ -123,6 +151,16 @@ fun SproutApp() {
             GardenScreen(
                 habits = habits,
                 allCheckIns = allCheckIns,
+                canAddHabit = canAddHabit,
+                subscriptionTier = subscriptionTier,
+                onAddHabit = {
+                    if (canAddHabit) {
+                        navController.navigate(Routes.ADD_EDIT_HABIT)
+                    } else {
+                        paywallMessage = "You've planted 3 habits — upgrade to plant more"
+                        navController.navigate(Routes.PAYWALL)
+                    }
+                },
                 onHabitClick = { habitId ->
                     navController.navigate("habit_detail/$habitId")
                 },
@@ -164,10 +202,53 @@ fun SproutApp() {
         }
 
         composable(Routes.SETTINGS) {
-            SettingsScreen()
+            SettingsScreen(
+                onNavigateToPaywall = { navController.navigate(Routes.PAYWALL) },
+                onNavigateToAccount = { navController.navigate(Routes.ACCOUNT) },
+                onNavigateToNotificationTimes = { navController.navigate(Routes.NOTIFICATION_TIMES) },
+                onSignOut = {
+                    navController.navigate(Routes.AUTH) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                themeViewModel = themeViewModel,
+                subscriptionTier = subscriptionTier,
+                onToggleSubscription = {
+                    coroutineScope.launch {
+                        repository.updateSubscriptionTier(if (subscriptionTier == "free") "plus" else "free")
+                    }
+                }
+            )
+        }
+        composable(Routes.ACCOUNT) {
+            AccountScreen(
+                onBack = { navController.popBackStack() },
+                onSignOut = {
+                    navController.navigate(Routes.AUTH) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                }
+            )
+        }
+        composable(Routes.NOTIFICATION_TIMES) {
+            NotificationTimesScreen(
+                habits = habits,
+                onBack = { navController.popBackStack() },
+                onUpdateTime = { habit, time ->
+                    coroutineScope.launch {
+                        repository.saveHabit(habit.copy(reminderTime = time))
+                    }
+                }
+            )
         }
         composable(Routes.PAYWALL) {
-            PaywallScreen(onClose = { navController.popBackStack() })
+            PaywallScreen(
+                onClose = { 
+                    paywallMessage = null
+                    navController.popBackStack() 
+                },
+                message = paywallMessage
+            )
         }
         composable(Routes.SHARE) { backStackEntry ->
             val habitId = backStackEntry.arguments?.getString("habitId")

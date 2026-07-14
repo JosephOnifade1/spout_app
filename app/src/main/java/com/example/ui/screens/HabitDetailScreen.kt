@@ -26,10 +26,16 @@ fun HabitDetailScreen(
     habit: Habit,
     recentCheckIns: List<CheckIn>,
     onBack: () -> Unit,
-    onEdit: () -> Unit
+    onEdit: () -> Unit,
+    onArchive: (Habit) -> Unit,
+    onUnarchive: (Habit) -> Unit
 ) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { },
@@ -145,7 +151,13 @@ fun HabitDetailScreen(
                     Text("Edit")
                 }
                 OutlinedButton(
-                    onClick = { /* TODO Archive */ }, 
+                    onClick = { 
+                        if (habit.archived) {
+                            onUnarchive(habit)
+                        } else {
+                            onArchive(habit)
+                        }
+                    }, 
                     modifier = Modifier.weight(1f).height(52.dp),
                     shape = CircleShape,
                     colors = ButtonDefaults.outlinedButtonColors(
@@ -154,7 +166,7 @@ fun HabitDetailScreen(
                     ),
                     border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
                 ) {
-                    Text("Archive")
+                    Text(if (habit.archived) "Unarchive" else "Archive")
                 }
             }
             Spacer(modifier = Modifier.height(32.dp))

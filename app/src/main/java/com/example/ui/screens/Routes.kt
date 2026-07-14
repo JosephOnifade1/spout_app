@@ -13,4 +13,6 @@ object Routes {
     const val PAYWALL = "paywall"
     const val NOTIFICATIONS = "notifications"
     const val MILESTONES = "milestones"
+    const val ACCOUNT = "account"
+    const val NOTIFICATION_TIMES = "notification_times"
 }

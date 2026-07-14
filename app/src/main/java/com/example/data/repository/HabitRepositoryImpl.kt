@@ -17,6 +17,7 @@ class HabitRepositoryImpl : HabitRepository {
     private val habits = MutableStateFlow<List<Habit>>(emptyList())
     private val checkIns = MutableStateFlow<List<CheckIn>>(emptyList())
     private val milestones = MutableStateFlow<List<Milestone>>(emptyList())
+    private val subscriptionTier = MutableStateFlow("free")
 
     private val db = try {
         FirebaseFirestore.getInstance()
@@ -32,6 +33,21 @@ class HabitRepositoryImpl : HabitRepository {
     )
 
     override fun getHabits(): Flow<List<Habit>> = habits
+
+    override fun getSubscriptionTier(): Flow<String> = subscriptionTier
+
+    override suspend fun updateSubscriptionTier(tier: String) {
+        subscriptionTier.value = tier.lowercase()
+    }
+
+    override fun canAddHabit(): Flow<Boolean> = habits.map { habitList ->
+        val activeCount = habitList.count { !it.archived }
+        if (subscriptionTier.value == "free") {
+            activeCount < 3
+        } else {
+            true
+        }
+    }
 
     override fun getRecentCheckIns(habitId: String): Flow<List<CheckIn>> = checkIns.map { list ->
         list.filter { it.habitId == habitId }.sortedBy { it.date }.takeLast(7)
