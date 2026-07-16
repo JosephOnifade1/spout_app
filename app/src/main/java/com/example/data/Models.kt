@@ -56,5 +56,7 @@ enum class GrowthStatus(val value: String) {
     SPROUT("sprout"),
     BUD("bud"),
     BLOOM("bloom"),
-    RESTING("resting")
+    RESTING("resting"),
+    UNSCHEDULED("unscheduled"),
+    BLANK("blank")
 }

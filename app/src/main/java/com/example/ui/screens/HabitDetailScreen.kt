@@ -19,6 +19,9 @@ import com.example.data.Habit
 import com.example.ui.components.GrowthBedRow
 import com.example.ui.theme.AppIcons
 import com.example.ui.theme.SproutTypography
+import java.time.Instant
+import java.time.LocalDate
+import java.time.ZoneId
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -88,17 +91,32 @@ fun HabitDetailScreen(
             Text("Your Growth Bed \uD83C\uDF3F", style = MaterialTheme.typography.titleMedium)
             Spacer(modifier = Modifier.height(24.dp))
             
-            // Derive statuses from recent check-ins
-            val statuses = recentCheckIns.map { 
-                try {
-                    GrowthStatus.valueOf(it.status.uppercase())
-                } catch(e: Exception) {
-                    GrowthStatus.SEED
+            // Derive statuses for last 7 days according to new rules
+            val statuses = remember(habit, recentCheckIns) {
+                val today = LocalDate.now()
+                val createdAt = Instant.ofEpochMilli(habit.createdAt).atZone(ZoneId.systemDefault()).toLocalDate()
+                
+                (0..6).reversed().map { dayOffset ->
+                    val date = today.minusDays(dayOffset.toLong())
+                    val dateStr = date.toString()
+                    val checkIn = recentCheckIns.find { it.date == dateStr }
+                    
+                    when {
+                        date.isBefore(createdAt) -> GrowthStatus.BLANK
+                        !isScheduled(habit, date) -> GrowthStatus.UNSCHEDULED
+                        checkIn == null -> GrowthStatus.RESTING
+                        else -> {
+                            try {
+                                GrowthStatus.valueOf(checkIn.status.uppercase())
+                            } catch (e: Exception) {
+                                GrowthStatus.SEED
+                            }
+                        }
+                    }
                 }
             }
-            val paddedStatuses = if (statuses.isEmpty()) listOf(GrowthStatus.SEED) else statuses
             
-            GrowthBedRow(recentStatuses = paddedStatuses)
+            GrowthBedRow(recentStatuses = statuses)
             
             Spacer(modifier = Modifier.height(64.dp))
             
@@ -107,23 +125,24 @@ fun HabitDetailScreen(
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("Total growth", style = MaterialTheme.typography.labelLarge)
+                    Text("Current streak", style = MaterialTheme.typography.labelLarge)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = habit.growthPoints.toString().padStart(3, '0'),
+                        text = habit.currentStreak.toString().padStart(3, '0'),
                         style = SproutTypography.TechnicalMono.copy(fontSize = 45.sp),
                         fontWeight = FontWeight.Medium
                     )
-                    Text("points", style = MaterialTheme.typography.labelMedium)
+                    Text("days", style = MaterialTheme.typography.labelMedium)
                 }
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text("Current stage", style = MaterialTheme.typography.labelLarge)
                     Spacer(modifier = Modifier.height(8.dp))
                     val currentStatus = when {
-                        habit.growthPoints < 5 -> GrowthStatus.SEED
-                        habit.growthPoints < 15 -> GrowthStatus.SPROUT
-                        habit.growthPoints < 30 -> GrowthStatus.BUD
-                        else -> GrowthStatus.BLOOM
+                        habit.currentStreak >= 7 -> GrowthStatus.BLOOM
+                        habit.currentStreak >= 4 -> GrowthStatus.BUD
+                        habit.currentStreak >= 2 -> GrowthStatus.SPROUT
+                        habit.currentStreak >= 1 -> GrowthStatus.SEED
+                        else -> GrowthStatus.RESTING
                     }
                     Text(
                         text = currentStatus.value.uppercase(),
@@ -171,5 +190,14 @@ fun HabitDetailScreen(
             }
             Spacer(modifier = Modifier.height(32.dp))
         }
+    }
+}
+
+private fun isScheduled(habit: Habit, date: LocalDate): Boolean {
+    return when (habit.frequency.lowercase()) {
+        "daily" -> true
+        "weekdays" -> date.dayOfWeek.value in 1..5
+        "custom" -> habit.customDays.contains(date.dayOfWeek.value)
+        else -> true
     }
 }

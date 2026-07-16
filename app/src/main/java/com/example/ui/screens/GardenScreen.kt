@@ -213,10 +213,11 @@ fun GardenScreen(
                     ) {
                         activeHabits.take(5).forEach { habit ->
                             val status = when {
-                                habit.growthPoints < 5 -> GrowthStatus.SEED
-                                habit.growthPoints < 15 -> GrowthStatus.SPROUT
-                                habit.growthPoints < 30 -> GrowthStatus.BUD
-                                else -> GrowthStatus.BLOOM
+                                habit.currentStreak >= 7 -> GrowthStatus.BLOOM
+                                habit.currentStreak >= 4 -> GrowthStatus.BUD
+                                habit.currentStreak >= 2 -> GrowthStatus.SPROUT
+                                habit.currentStreak >= 1 -> GrowthStatus.SEED
+                                else -> GrowthStatus.RESTING
                             }
                             GrowthIcon(status = status, modifier = Modifier.size(90.dp))
                         }
@@ -500,6 +501,6 @@ fun findStrongestHabit(habits: List<Habit>, allCheckIns: List<CheckIn>): Habit? 
     val tiedHabits = weeklyCounts.filter { it.value == maxCount }.keys.toList()
     if (tiedHabits.size == 1) return tiedHabits[0]
     
-    // Tiebreaker: Most growth points
-    return tiedHabits.maxByOrNull { it.growthPoints }
+    // Tiebreaker: Most current streak
+    return tiedHabits.maxByOrNull { it.currentStreak }
 }

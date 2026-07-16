@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.Flow
 interface HabitRepository {
     fun getHabits(): Flow<List<Habit>>
     fun getRecentCheckIns(habitId: String): Flow<List<CheckIn>>
-    suspend fun checkIn(habit: Habit, date: String, status: GrowthStatus): Milestone?
     suspend fun saveHabit(habit: Habit)
     suspend fun initializeDefaultHabits()
     suspend fun updateHabitOrder(habitIds: List<String>)
@@ -21,4 +20,7 @@ interface HabitRepository {
     fun getSubscriptionTier(): Flow<String>
     suspend fun updateSubscriptionTier(tier: String)
     fun canAddHabit(): Flow<Boolean>
+
+    suspend fun toggleCheckIn(habitId: String): Milestone?
+    suspend fun deleteHabitPermanently(habitId: String)
 }

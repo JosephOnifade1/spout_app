@@ -15,4 +15,5 @@ object Routes {
     const val MILESTONES = "milestones"
     const val ACCOUNT = "account"
     const val NOTIFICATION_TIMES = "notification_times"
+    const val ARCHIVED_HABITS = "archived_habits"
 }

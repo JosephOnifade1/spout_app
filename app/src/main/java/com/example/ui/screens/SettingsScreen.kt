@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.data.Habit
 import com.example.ui.theme.SproutTypography
 import com.example.ui.theme.ThemeViewModel
 import com.google.firebase.auth.FirebaseAuth
@@ -31,9 +32,11 @@ import androidx.core.content.FileProvider
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
+    habits: List<Habit> = emptyList(),
     onNavigateToPaywall: () -> Unit = {},
     onNavigateToAccount: () -> Unit = {},
     onNavigateToNotificationTimes: () -> Unit = {},
+    onNavigateToArchivedHabits: () -> Unit = {},
     onSignOut: () -> Unit = {},
     themeViewModel: ThemeViewModel,
     subscriptionTier: String = "free",
@@ -94,6 +97,14 @@ fun SettingsScreen(
             }
             item { 
                 SettingsRow(
+                    icon = Icons.Outlined.Inventory2,
+                    title = "Archived habits",
+                    subtitle = "View and restore habits",
+                    onClick = { onNavigateToArchivedHabits() }
+                ) 
+            }
+            item { 
+                SettingsRow(
                     icon = Icons.Outlined.Schedule,
                     title = "Notification times",
                     subtitle = "7:30 AM, 7:30 PM",
@@ -108,6 +119,11 @@ fun SettingsScreen(
                     checked = isDarkTheme,
                     onCheckedChange = { themeViewModel.setDarkTheme(it) }
                 )
+            }
+
+            item { SectionHeader("Pro-tips (ADHD-friendly)") }
+            item {
+                ProTipsSection(habits = habits)
             }
             
             item { SectionHeader("Subscription & Data") }
@@ -343,4 +359,98 @@ private fun exportData(context: Context) {
         addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
     }
     context.startActivity(Intent.createChooser(intent, "Export Data"))
+}
+
+@Composable
+fun ProTipsSection(habits: List<Habit>) {
+    val activeHabits = habits.filter { !it.archived }
+    val tips = remember(activeHabits) {
+        generateTips(activeHabits)
+    }
+
+    Column(
+        modifier = Modifier
+            .padding(horizontal = 24.dp)
+            .padding(bottom = 16.dp)
+    ) {
+        if (tips.isEmpty()) {
+            TipCard(
+                title = "Start Small",
+                description = "Choose one tiny habit to begin with. Consistency over intensity!"
+            )
+        } else {
+            tips.forEach { tip ->
+                TipCard(
+                    title = tip.first,
+                    description = tip.second
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun TipCard(title: String, description: String) {
+    Surface(
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Outlined.Lightbulb,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = title,
+                    style = SproutTypography.TitleMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = description,
+                style = SproutTypography.BodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+private fun generateTips(activeHabits: List<Habit>): List<Pair<String, String>> {
+    val tips = mutableListOf<Pair<String, String>>()
+
+    if (activeHabits.size > 3) {
+        tips.add(
+            "Focus Filter" to "You have ${activeHabits.size} active habits. If you're feeling overwhelmed, try focusing on just 2-3 key ones for a week."
+        )
+    }
+
+    if (activeHabits.any { it.currentStreak >= 3 }) {
+        val highStreakHabit = activeHabits.maxByOrNull { it.currentStreak }
+        tips.add(
+            "Celebrate Wins" to "Your '${highStreakHabit?.title}' streak is ${highStreakHabit?.currentStreak} days! Small wins release dopamine, helping your brain stay engaged."
+        )
+    }
+
+    if (activeHabits.isNotEmpty()) {
+        tips.add(
+            "Habit Stacking" to "Try pairing a habit with something you already do. For example, 'After I brush my teeth, I will ${activeHabits.random().title.lowercase()}'."
+        )
+    }
+
+    if (tips.size < 2) {
+        tips.add(
+            "The 2-Minute Rule" to "If a habit feels like too much, just do it for 2 minutes. The goal is just to show up!"
+        )
+    }
+
+    return tips.take(2)
 }

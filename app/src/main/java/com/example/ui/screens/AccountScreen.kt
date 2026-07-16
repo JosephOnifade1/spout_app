@@ -16,7 +16,12 @@ import com.google.firebase.auth.FirebaseAuth
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountScreen(onBack: () -> Unit, onSignOut: () -> Unit) {
-    val user = FirebaseAuth.getInstance().currentUser
+    val auth = try {
+        FirebaseAuth.getInstance()
+    } catch (e: Exception) {
+        null
+    }
+    val user = auth?.currentUser
     
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -71,7 +76,11 @@ fun AccountScreen(onBack: () -> Unit, onSignOut: () -> Unit) {
             
             Button(
                 onClick = {
-                    FirebaseAuth.getInstance().signOut()
+                    try {
+                        auth?.signOut()
+                    } catch (e: Exception) {
+                        // Handle error or ignore
+                    }
                     onSignOut()
                 },
                 modifier = Modifier.fillMaxWidth().height(56.dp),

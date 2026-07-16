@@ -15,11 +15,26 @@ import com.example.ui.theme.AppIcons
 
 @Composable
 fun GrowthIcon(status: GrowthStatus, modifier: Modifier = Modifier) {
+    if (status == GrowthStatus.BLANK) {
+        androidx.compose.foundation.layout.Spacer(modifier = modifier.size(32.dp))
+        return
+    }
+
     val scale by animateFloatAsState(
         targetValue = 1f,
         animationSpec = tween(durationMillis = 300),
         label = "growthScale"
     )
+
+    if (status == GrowthStatus.UNSCHEDULED) {
+        androidx.compose.foundation.Canvas(modifier = modifier.size(32.dp)) {
+            drawCircle(
+                color = androidx.compose.ui.graphics.Color.LightGray.copy(alpha = 0.5f),
+                radius = 4.dp.toPx()
+            )
+        }
+        return
+    }
 
     val iconRes = when (status) {
         GrowthStatus.SEED -> AppIcons.GrowthSeed
@@ -27,6 +42,7 @@ fun GrowthIcon(status: GrowthStatus, modifier: Modifier = Modifier) {
         GrowthStatus.BUD -> AppIcons.GrowthBud
         GrowthStatus.BLOOM -> AppIcons.GrowthBloom
         GrowthStatus.RESTING -> AppIcons.GrowthResting
+        else -> AppIcons.GrowthSeed
     }
 
     Image(

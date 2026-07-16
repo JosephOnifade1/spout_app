@@ -9,7 +9,9 @@ import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
+import java.time.Instant
 import java.time.LocalDate
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.UUID
 
@@ -53,50 +55,150 @@ class HabitRepositoryImpl : HabitRepository {
         list.filter { it.habitId == habitId }.sortedBy { it.date }.takeLast(7)
     }
 
-    private fun calculateGrowthStatus(points: Int): GrowthStatus {
-        return when {
-            points < 5 -> GrowthStatus.SEED
-            points < 15 -> GrowthStatus.SPROUT
-            points < 30 -> GrowthStatus.BUD
-            else -> GrowthStatus.BLOOM
+    private fun isScheduled(habit: Habit, date: LocalDate): Boolean {
+        return when (habit.frequency.lowercase()) {
+            "daily" -> true
+            "weekdays" -> date.dayOfWeek.value in 1..5
+            "custom" -> habit.customDays.contains(date.dayOfWeek.value)
+            else -> true
         }
     }
 
-    override suspend fun checkIn(habit: Habit, date: String, status: GrowthStatus): Milestone? {
-        val newPoints = habit.growthPoints + 1
-        val newStatus = calculateGrowthStatus(newPoints)
-        
-        val newCheckIn = CheckIn(
-            habitId = habit.habitId,
-            userId = "local_user",
-            date = date,
-            status = newStatus.value
-        )
-        checkIns.value = checkIns.value + newCheckIn
-        
-        // Still keep streak logic for now but prioritize growth points for status and milestones
-        val newStreak = habit.currentStreak + 1
-        val updatedHabit = habit.copy(
-            currentStreak = newStreak,
-            longestStreak = maxOf(habit.longestStreak, newStreak),
-            growthPoints = newPoints
-        )
-        habits.value = habits.value.map { if (it.habitId == habit.habitId) updatedHabit else it }
-
-        // Trigger Milestone if cumulative growth crosses 10, 25, 50, 100
-        val milestonesToTrigger = listOf(10, 25, 50, 100)
-        if (newPoints in milestonesToTrigger) {
-            val milestone = Milestone(
-                habitId = habit.habitId,
-                habitTitle = habit.title,
-                tier = newPoints,
-                dateReached = LocalDate.now().format(DateTimeFormatter.ofPattern("MMM d, yyyy")),
-                encouragementLine = encouragementPhrases.random()
-            )
-            saveMilestone(milestone)
-            return milestone
+    private fun getPreviousScheduledDate(habit: Habit, date: LocalDate): LocalDate {
+        var prev = date.minusDays(1)
+        val createdAt = Instant.ofEpochMilli(habit.createdAt).atZone(ZoneId.systemDefault()).toLocalDate()
+        // Don't look back before creation
+        while (!isScheduled(habit, prev) && prev.isAfter(createdAt)) {
+            prev = prev.minusDays(1)
         }
-        return null
+        return prev
+    }
+
+    private fun getStreakAt(habit: Habit, date: LocalDate, allCheckInDates: Set<LocalDate>): Int {
+        var current = date
+        var streak = 1
+        val createdAt = Instant.ofEpochMilli(habit.createdAt).atZone(ZoneId.systemDefault()).toLocalDate()
+        
+        while (true) {
+            val prev = getPreviousScheduledDate(habit, current)
+            if (prev.isBefore(createdAt)) break
+            
+            if (allCheckInDates.contains(prev)) {
+                streak++
+                current = prev
+            } else {
+                val prevPrev = getPreviousScheduledDate(habit, prev)
+                if (prevPrev.isBefore(createdAt)) break
+                
+                if (allCheckInDates.contains(prevPrev)) {
+                    streak++
+                    current = prevPrev
+                } else {
+                    break
+                }
+            }
+        }
+        return streak
+    }
+
+    private fun calculateStreakAtDate(habit: Habit, date: LocalDate): Int {
+        val checkInDates = checkIns.value
+            .filter { it.habitId == habit.habitId && it.date < date.toString() }
+            .map { LocalDate.parse(it.date) }
+            .toSet()
+            
+        if (checkInDates.isEmpty()) return 1
+        
+        val createdAt = Instant.ofEpochMilli(habit.createdAt).atZone(ZoneId.systemDefault()).toLocalDate()
+        val prevScheduled = getPreviousScheduledDate(habit, date)
+        
+        if (prevScheduled.isBefore(createdAt)) return 1
+
+        if (checkInDates.contains(prevScheduled)) {
+            return getStreakAt(habit, prevScheduled, checkInDates) + 1
+        } else {
+            val prevPrevScheduled = getPreviousScheduledDate(habit, prevScheduled)
+            if (prevPrevScheduled.isBefore(createdAt)) return 1
+            
+            if (checkInDates.contains(prevPrevScheduled)) {
+                return getStreakAt(habit, prevPrevScheduled, checkInDates) + 1
+            } else {
+                return 1
+            }
+        }
+    }
+
+    private fun getGrowthStage(streak: Int): String {
+        return when {
+            streak >= 7 -> "bloom"
+            streak >= 4 -> "bud"
+            streak >= 2 -> "sprout"
+            else -> "seed"
+        }
+    }
+
+    override suspend fun toggleCheckIn(habitId: String): Milestone? {
+        val habit = habits.value.find { it.habitId == habitId } ?: return null
+        val today = LocalDate.now()
+        val todayStr = today.toString()
+        
+        val existingCheckIn = checkIns.value.find { it.habitId == habitId && it.date == todayStr }
+        
+        if (existingCheckIn != null) {
+            // UNDO
+            checkIns.value = checkIns.value.filter { it != existingCheckIn }
+            
+            val lastCheckIn = checkIns.value
+                .filter { it.habitId == habitId && it.date < todayStr }
+                .maxByOrNull { it.date }
+                
+            val newCurrentStreak = if (lastCheckIn != null) {
+                getStreakAt(habit, LocalDate.parse(lastCheckIn.date), 
+                    checkIns.value.filter { it.habitId == habitId }.map { LocalDate.parse(it.date) }.toSet())
+            } else {
+                0
+            }
+            
+            val updatedHabit = habit.copy(currentStreak = newCurrentStreak)
+            habits.value = habits.value.map { if (it.habitId == habitId) updatedHabit else it }
+            
+            db?.collection("check_ins")?.document(existingCheckIn.checkInId)?.delete()
+            return null
+        } else {
+            // CHECK IN
+            val newStreak = calculateStreakAtDate(habit, today)
+            val status = getGrowthStage(newStreak)
+            
+            val newCheckIn = CheckIn(
+                habitId = habitId,
+                userId = "local_user",
+                date = todayStr,
+                status = status
+            )
+            checkIns.value = checkIns.value + newCheckIn
+            
+            val newLongestStreak = maxOf(habit.longestStreak, newStreak)
+            val updatedHabit = habit.copy(
+                currentStreak = newStreak,
+                longestStreak = newLongestStreak
+            )
+            habits.value = habits.value.map { if (it.habitId == habitId) updatedHabit else it }
+            
+            db?.collection("check_ins")?.document(newCheckIn.checkInId)?.set(newCheckIn)
+            
+            if (newStreak in listOf(7, 30, 100)) {
+                val milestone = Milestone(
+                    habitId = habitId,
+                    habitTitle = habit.title,
+                    tier = newStreak,
+                    dateReached = today.format(DateTimeFormatter.ofPattern("MMM d, yyyy")),
+                    encouragementLine = encouragementPhrases.random()
+                )
+                saveMilestone(milestone)
+                return milestone
+            }
+            return null
+        }
     }
 
     override suspend fun saveHabit(habit: Habit) {
@@ -166,5 +268,23 @@ class HabitRepositoryImpl : HabitRepository {
         
         // Save to Firestore if available
         db?.collection("milestones")?.add(milestone)
+    }
+
+    override suspend fun deleteHabitPermanently(habitId: String) {
+        habits.value = habits.value.filter { it.habitId != habitId }
+        checkIns.value = checkIns.value.filter { it.habitId != habitId }
+        milestones.value = milestones.value.filter { it.habitId != habitId }
+
+        db?.collection("habits")?.document(habitId)?.delete()
+        db?.collection("check_ins")?.whereEqualTo("habitId", habitId)?.get()?.addOnSuccessListener { result ->
+            for (document in result) {
+                document.reference.delete()
+            }
+        }
+        db?.collection("milestones")?.whereEqualTo("habitId", habitId)?.get()?.addOnSuccessListener { result ->
+            for (document in result) {
+                document.reference.delete()
+            }
+        }
     }
 }

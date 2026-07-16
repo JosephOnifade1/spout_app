@@ -52,6 +52,7 @@ fun SproutApp(themeViewModel: ThemeViewModel) {
         composable(Routes.TODAY) {
             TodayScreen(
                 habits = habits,
+                allCheckIns = allCheckIns,
                 onAddHabit = { 
                     if (canAddHabit) {
                         navController.navigate(Routes.ADD_EDIT_HABIT)
@@ -62,14 +63,10 @@ fun SproutApp(themeViewModel: ThemeViewModel) {
                 },
                 onHabitClick = { habitId -> 
                      navController.navigate("habit_detail/$habitId") 
-                 },
+                  },
                 onCheckIn = { habit -> 
                     coroutineScope.launch {
-                        val milestone = repository.checkIn(
-                            habit = habit,
-                            date = LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE),
-                            status = GrowthStatus.SEED
-                        )
+                        val milestone = repository.toggleCheckIn(habit.habitId)
                         if (milestone != null) {
                             milestoneToCelebrate = milestone
                         }
@@ -203,9 +200,11 @@ fun SproutApp(themeViewModel: ThemeViewModel) {
 
         composable(Routes.SETTINGS) {
             SettingsScreen(
+                habits = habits,
                 onNavigateToPaywall = { navController.navigate(Routes.PAYWALL) },
                 onNavigateToAccount = { navController.navigate(Routes.ACCOUNT) },
                 onNavigateToNotificationTimes = { navController.navigate(Routes.NOTIFICATION_TIMES) },
+                onNavigateToArchivedHabits = { navController.navigate(Routes.ARCHIVED_HABITS) },
                 onSignOut = {
                     navController.navigate(Routes.AUTH) {
                         popUpTo(0) { inclusive = true }
@@ -216,6 +215,27 @@ fun SproutApp(themeViewModel: ThemeViewModel) {
                 onToggleSubscription = {
                     coroutineScope.launch {
                         repository.updateSubscriptionTier(if (subscriptionTier == "free") "plus" else "free")
+                    }
+                }
+            )
+        }
+        composable(Routes.ARCHIVED_HABITS) {
+            ArchivedHabitsScreen(
+                habits = habits,
+                onBack = { navController.popBackStack() },
+                onRestore = { habit ->
+                    if (canAddHabit) {
+                        coroutineScope.launch {
+                            repository.saveHabit(habit.copy(archived = false))
+                        }
+                    } else {
+                        paywallMessage = "You've already got 3 active habits. Upgrade to grow more, or archive one first."
+                        navController.navigate(Routes.PAYWALL)
+                    }
+                },
+                onDeletePermanently = { habit ->
+                    coroutineScope.launch {
+                        repository.deleteHabitPermanently(habit.habitId)
                     }
                 }
             )

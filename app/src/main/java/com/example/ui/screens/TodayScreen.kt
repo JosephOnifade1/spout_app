@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,22 +24,26 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.data.CheckIn
 import com.example.data.GrowthStatus
 import com.example.data.Habit
 import com.example.ui.components.GrowthIcon
 import com.example.ui.components.BottomNavBar
 import com.example.ui.theme.AppIcons
+import java.time.LocalDate
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodayScreen(
     habits: List<Habit>,
+    allCheckIns: List<CheckIn> = emptyList(),
     onAddHabit: () -> Unit,
     onHabitClick: (String) -> Unit,
     onCheckIn: (Habit) -> Unit,
     onNotificationsClick: () -> Unit,
     onNavigateToTab: (String) -> Unit
 ) {
+    val today = LocalDate.now().toString()
     val sortedHabits = remember(habits) {
         habits.filter { !it.archived }.sortedBy { it.sortOrder }
     }
@@ -114,8 +119,14 @@ fun TodayScreen(
             
             // Habits
             items(sortedHabits) { habit ->
+                val isCheckedIn = allCheckIns.any { it.habitId == habit.habitId && it.date == today }
                 Box(modifier = Modifier.padding(horizontal = 24.dp, vertical = 6.dp)) {
-                    HabitCard(habit = habit, onClick = { onHabitClick(habit.habitId) }, onCheckIn = { onCheckIn(habit) })
+                    HabitCard(
+                        habit = habit, 
+                        isCheckedIn = isCheckedIn,
+                        onClick = { onHabitClick(habit.habitId) }, 
+                        onCheckIn = { onCheckIn(habit) }
+                    )
                 }
             }
             
@@ -141,15 +152,20 @@ fun TodayScreen(
 }
 
 @Composable
-fun HabitCard(habit: Habit, onClick: () -> Unit, onCheckIn: () -> Unit) {
+fun HabitCard(habit: Habit, isCheckedIn: Boolean, onClick: () -> Unit, onCheckIn: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(20.dp))
             .clickable { onClick() },
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isCheckedIn) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f) else MaterialTheme.colorScheme.surface
+        ),
+        border = BorderStroke(
+            1.dp, 
+            if (isCheckedIn) MaterialTheme.colorScheme.primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Row(
@@ -171,7 +187,9 @@ fun HabitCard(habit: Habit, onClick: () -> Unit, onCheckIn: () -> Unit) {
                 Image(
                     painter = painterResource(id = habitIconRes),
                     contentDescription = null, 
-                    colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)),
+                    colorFilter = ColorFilter.tint(
+                        if (isCheckedIn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
+                    ),
                     modifier = Modifier.size(44.dp)
                 )
                 
@@ -182,13 +200,14 @@ fun HabitCard(habit: Habit, onClick: () -> Unit, onCheckIn: () -> Unit) {
                     Text(
                         habit.title, 
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = if (isCheckedIn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        "Today's target" + (habit.targetText?.let { ": $it" } ?: ""), 
+                        if (isCheckedIn) "Goal achieved!" else "Today's target" + (habit.targetText?.let { ": $it" } ?: ""), 
                         style = MaterialTheme.typography.bodySmall, 
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha=0.6f)
+                        color = if (isCheckedIn) MaterialTheme.colorScheme.primary.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onBackground.copy(alpha=0.6f)
                     )
                 }
             }
@@ -204,18 +223,34 @@ fun HabitCard(habit: Habit, onClick: () -> Unit, onCheckIn: () -> Unit) {
                 Box(
                     modifier = Modifier
                         .size(40.dp)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
+                        .background(
+                            if (isCheckedIn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), 
+                            CircleShape
+                        ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Image(
-                        painter = painterResource(id = AppIcons.GrowthBud), // Leaf/wing shape
-                        contentDescription = "Check In Icon",
-                        modifier = Modifier.size(20.dp),
-                        colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
-                    )
+                    if (isCheckedIn) {
+                        Icon(
+                            imageVector = Icons.Default.Check,
+                            contentDescription = "Checked In",
+                            modifier = Modifier.size(20.dp),
+                            tint = Color.White
+                        )
+                    } else {
+                        Image(
+                            painter = painterResource(id = AppIcons.GrowthBud),
+                            contentDescription = "Check In Icon",
+                            modifier = Modifier.size(20.dp),
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
+                        )
+                    }
                 }
                 Spacer(modifier = Modifier.height(4.dp))
-                Text("Check in", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f))
+                Text(
+                    if (isCheckedIn) "Checked in ✓" else "Check in", 
+                    style = MaterialTheme.typography.labelSmall, 
+                    color = if (isCheckedIn) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
+                )
             }
         }
     }
