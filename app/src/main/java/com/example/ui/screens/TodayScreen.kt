@@ -35,6 +35,7 @@ import java.time.LocalDate
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodayScreen(
+    userName: String,
     habits: List<Habit>,
     allCheckIns: List<CheckIn> = emptyList(),
     onAddHabit: () -> Unit,
@@ -76,8 +77,8 @@ fun TodayScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Image(
-                            painter = painterResource(id = AppIcons.SproutOutline),
-                            contentDescription = "Sprout icon",
+                            painter = painterResource(id = AppIcons.PerennialOutline),
+                            contentDescription = "Perennial icon",
                             modifier = Modifier.size(28.dp),
                             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                         )
@@ -95,7 +96,7 @@ fun TodayScreen(
                     Spacer(modifier = Modifier.height(32.dp))
                     
                     Text("Good morning,", style = MaterialTheme.typography.headlineLarge)
-                    Text("Alex", style = MaterialTheme.typography.headlineLarge)
+                    Text(userName, style = MaterialTheme.typography.headlineLarge)
                     
                     Spacer(modifier = Modifier.height(8.dp))
                     
@@ -106,7 +107,7 @@ fun TodayScreen(
                             color = MaterialTheme.colorScheme.onBackground.copy(alpha=0.6f)
                         )
                         Image(
-                            painter = painterResource(id = AppIcons.GrowthSprout),
+                            painter = painterResource(id = AppIcons.GrowthLeaf),
                             contentDescription = null,
                             modifier = Modifier.size(16.dp),
                             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground.copy(alpha=0.6f))

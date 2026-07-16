@@ -33,7 +33,7 @@ import com.example.data.Habit
 import com.example.ui.components.BottomNavBar
 import com.example.ui.components.GrowthIcon
 import com.example.ui.theme.AppIcons
-import com.example.ui.theme.SproutTypography
+import com.example.ui.theme.PerennialTypography
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyColumnState
 import java.time.LocalDate
@@ -339,7 +339,7 @@ fun WeeklySummaryCard(allCheckIns: List<CheckIn>) {
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painter = painterResource(id = AppIcons.GrowthSprout),
+                    painter = painterResource(id = AppIcons.GrowthLeaf),
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
                     colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
@@ -354,7 +354,7 @@ fun WeeklySummaryCard(allCheckIns: List<CheckIn>) {
                     )
                     Text(
                         text = "$distinctDays",
-                        style = SproutTypography.TechnicalMono
+                        style = PerennialTypography.TechnicalMono
                     )
                     Text(
                         text = " of ",
@@ -362,7 +362,7 @@ fun WeeklySummaryCard(allCheckIns: List<CheckIn>) {
                     )
                     Text(
                         text = "$totalDays",
-                        style = SproutTypography.TechnicalMono
+                        style = PerennialTypography.TechnicalMono
                     )
                     Text(
                         text = " days",
@@ -447,7 +447,7 @@ fun GardenHabitCard(
                 // Consistency stat large
                 Text(
                     "$weeklyCount / 7",
-                    style = SproutTypography.TechnicalMono.copy(fontSize = 22.sp),
+                    style = PerennialTypography.TechnicalMono.copy(fontSize = 22.sp),
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.8f)
                 )
                 
@@ -473,7 +473,7 @@ fun GardenHabitCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(
-                        painter = painterResource(id = AppIcons.GrowthSprout),
+                        painter = painterResource(id = AppIcons.GrowthLeaf),
                         contentDescription = null,
                         modifier = Modifier.size(12.dp),
                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)

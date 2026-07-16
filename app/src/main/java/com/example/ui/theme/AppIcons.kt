@@ -6,8 +6,8 @@ object AppIcons {
     // Growth Stages
     val GrowthSeed = R.drawable.ic_status_seed
     val GrowthSeedFilled = R.drawable.icon_growth_seed_filled
-    val GrowthSprout = R.drawable.ic_status_sprout
-    val GrowthSproutFilled = R.drawable.icon_growth_sprout_filled
+    val GrowthLeaf = R.drawable.ic_status_sprout
+    val GrowthLeafFilled = R.drawable.icon_growth_sprout_filled
     val GrowthBud = R.drawable.ic_status_bud
     val GrowthBloom = R.drawable.ic_status_bloom
     val GrowthBloomFilled = R.drawable.icon_growth_bloom_filled
@@ -35,6 +35,6 @@ object AppIcons {
     val AppleLogo = R.drawable.ic_apple_logo
     val GoogleLogo = R.drawable.ic_google_logo
     val Email = R.drawable.ic_email
-    val SproutOutline = R.drawable.ic_sprout_outline
+    val PerennialOutline = R.drawable.ic_sprout_outline
     val Squiggle = R.drawable.ic_squiggle
 }

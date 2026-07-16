@@ -38,7 +38,7 @@ fun GrowthIcon(status: GrowthStatus, modifier: Modifier = Modifier) {
 
     val iconRes = when (status) {
         GrowthStatus.SEED -> AppIcons.GrowthSeed
-        GrowthStatus.SPROUT -> AppIcons.GrowthSprout
+        GrowthStatus.SPROUT -> AppIcons.GrowthLeaf
         GrowthStatus.BUD -> AppIcons.GrowthBud
         GrowthStatus.BLOOM -> AppIcons.GrowthBloom
         GrowthStatus.RESTING -> AppIcons.GrowthResting

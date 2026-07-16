@@ -43,13 +43,13 @@ fun AuthScreen(onAuthSuccess: () -> Unit) {
             Spacer(modifier = Modifier.weight(0.5f)) // Generous top padding ~1/3
 
             Image(
-                painter = painterResource(id = AppIcons.SproutOutline),
-                contentDescription = "Sprout icon",
+                painter = painterResource(id = AppIcons.PerennialOutline),
+                contentDescription = "Perennial icon",
                 modifier = Modifier.size(64.dp)
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "sprout", 
+                text = "perennial", 
                 style = MaterialTheme.typography.displayMedium, 
                 fontWeight = FontWeight.Normal,
                 color = MaterialTheme.colorScheme.primary // moss/ink teal tone

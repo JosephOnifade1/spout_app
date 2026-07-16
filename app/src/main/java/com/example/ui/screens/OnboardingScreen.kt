@@ -112,7 +112,7 @@ fun OnboardingPage1() {
         Spacer(modifier = Modifier.weight(1f))
         Image(
             painter = painterResource(id = AppIcons.OnboardingWelcome),
-            contentDescription = "Sprout growing in soil",
+            contentDescription = "Perennial plant growing in soil",
             modifier = Modifier.fillMaxWidth().weight(1f).padding(24.dp)
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -169,7 +169,7 @@ fun OnboardingPage3() {
             ReminderOptionCard(
                 title = "Voice", 
                 subtitle = "A gentle nudge to help you remember.", 
-                iconRes = AppIcons.GrowthSprout, 
+                iconRes = AppIcons.GrowthLeaf, 
                 selected = selectedOption == "Voice",
                 onClick = { selectedOption = "Voice" }
             )

@@ -16,4 +16,5 @@ object Routes {
     const val ACCOUNT = "account"
     const val NOTIFICATION_TIMES = "notification_times"
     const val ARCHIVED_HABITS = "archived_habits"
+    const val CUSTOMER_CENTER = "customer_center"
 }

@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.data.Habit
-import com.example.ui.theme.SproutTypography
+import com.example.ui.theme.PerennialTypography
 import com.example.ui.theme.ThemeViewModel
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
@@ -37,6 +37,7 @@ fun SettingsScreen(
     onNavigateToAccount: () -> Unit = {},
     onNavigateToNotificationTimes: () -> Unit = {},
     onNavigateToArchivedHabits: () -> Unit = {},
+    onNavigateToCustomerCenter: () -> Unit = {},
     onSignOut: () -> Unit = {},
     themeViewModel: ThemeViewModel,
     subscriptionTier: String = "free",
@@ -75,7 +76,7 @@ fun SettingsScreen(
                 title = { 
                     Text(
                         "Settings", 
-                        style = SproutTypography.HeadlineMedium,
+                        style = PerennialTypography.HeadlineMedium,
                         color = MaterialTheme.colorScheme.onBackground
                     ) 
                 },
@@ -131,18 +132,17 @@ fun SettingsScreen(
                 SettingsRow(
                     icon = Icons.Outlined.CreditCard,
                     title = "Subscription management",
-                    subtitle = if (subscriptionTier == "plus") "Sprout Plus Plan" else "Free Plan",
-                    onClick = onNavigateToPaywall
+                    subtitle = if (subscriptionTier == "plus") "Perennial Pro Plan" else "Free Plan",
+                    onClick = {
+                        if (subscriptionTier == "free") {
+                            onNavigateToPaywall()
+                        } else {
+                            onNavigateToCustomerCenter()
+                        }
+                    }
                 ) 
             }
-            item {
-                SettingsRow(
-                    icon = Icons.Outlined.Star,
-                    title = "Simulate ${if (subscriptionTier == "free") "Plus" else "Free"}",
-                    subtitle = "For testing limit logic",
-                    onClick = onToggleSubscription
-                )
-            }
+            // Removed Simulate row per spec
             item { 
                 SettingsRow(
                     icon = Icons.Outlined.FileDownload,
@@ -188,8 +188,8 @@ fun SettingsScreen(
             item {
                 Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                     Text(
-                        "Sprout v1.2.0", 
-                        style = SproutTypography.BodyMedium, 
+                        "Perennial v1.2.0", 
+                        style = PerennialTypography.BodyMedium, 
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                         modifier = Modifier.padding(bottom = 32.dp)
                     )
@@ -203,7 +203,7 @@ fun SettingsScreen(
 fun SectionHeader(title: String) {
     Text(
         text = title.uppercase(),
-        style = SproutTypography.LabelSmallMono,
+        style = PerennialTypography.LabelSmallMono,
         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
         modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
     )
@@ -235,11 +235,11 @@ fun SettingsRow(
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(title, style = SproutTypography.BodyLarge, color = titleColor)
+                Text(title, style = PerennialTypography.BodyLarge, color = titleColor)
                 if (subtitle != null) {
                     Text(
                         subtitle, 
-                        style = SproutTypography.BodyMedium, 
+                        style = PerennialTypography.BodyMedium, 
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                     )
                 }
@@ -281,10 +281,10 @@ fun SettingsToggleRow(
             )
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(title, style = SproutTypography.BodyLarge)
+                Text(title, style = PerennialTypography.BodyLarge)
                 Text(
                     subtitle, 
-                    style = SproutTypography.BodyMedium, 
+                    style = PerennialTypography.BodyMedium, 
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                 )
             }
@@ -308,7 +308,7 @@ fun ReminderStyleDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Reminder Style", style = SproutTypography.TitleMedium) },
+        title = { Text("Reminder Style", style = PerennialTypography.TitleMedium) },
         text = {
             Column {
                 val options = listOf("Voice", "Text-only", "None")
@@ -325,7 +325,7 @@ fun ReminderStyleDialog(
                             onClick = { onSelect(option) }
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(option, style = SproutTypography.BodyLarge)
+                        Text(option, style = PerennialTypography.BodyLarge)
                     }
                 }
             }
@@ -410,14 +410,14 @@ fun TipCard(title: String, description: String) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = title,
-                    style = SproutTypography.TitleMedium,
+                    style = PerennialTypography.TitleMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = description,
-                style = SproutTypography.BodyMedium,
+                style = PerennialTypography.BodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }

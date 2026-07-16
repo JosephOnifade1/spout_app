@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.FileProvider
 import com.example.ui.theme.AppIcons
-import com.example.ui.theme.SproutTypography
+import com.example.ui.theme.PerennialTypography
 import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
@@ -60,7 +60,7 @@ fun ShareScreen(
                 title = { 
                     Text(
                         "Share Your Growth", 
-                        style = SproutTypography.TitleMedium,
+                        style = PerennialTypography.TitleMedium,
                         modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center
                     ) 
@@ -111,7 +111,7 @@ fun ShareScreen(
                         "Square (1:1)",
                         modifier = Modifier.padding(vertical = 10.dp),
                         textAlign = TextAlign.Center,
-                        style = SproutTypography.BodyMedium,
+                        style = PerennialTypography.BodyMedium,
                         color = if (isSquare) Color.White else Color.Gray
                     )
                 }
@@ -125,7 +125,7 @@ fun ShareScreen(
                         "Story (9:16)",
                         modifier = Modifier.padding(vertical = 10.dp),
                         textAlign = TextAlign.Center,
-                        style = SproutTypography.BodyMedium,
+                        style = PerennialTypography.BodyMedium,
                         color = if (!isSquare) Color.White else Color.Gray
                     )
                 }
@@ -177,7 +177,7 @@ fun ShareScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Outlined.Download, contentDescription = null, modifier = Modifier.size(20.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Save", style = SproutTypography.BodyLarge.copy(fontWeight = FontWeight.Bold))
+                        Text("Save", style = PerennialTypography.BodyLarge.copy(fontWeight = FontWeight.Bold))
                     }
                 }
 
@@ -197,7 +197,7 @@ fun ShareScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Outlined.Share, contentDescription = null, modifier = Modifier.size(20.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Share", style = SproutTypography.BodyLarge.copy(fontWeight = FontWeight.Bold))
+                        Text("Share", style = PerennialTypography.BodyLarge.copy(fontWeight = FontWeight.Bold))
                     }
                 }
             }
@@ -212,7 +212,7 @@ fun ExportableCardContent(habitTitle: String, streak: Int) {
     Box(modifier = Modifier.fillMaxSize()) {
         // Vines background
         Image(
-            painter = painterResource(id = AppIcons.SproutOutline),
+            painter = painterResource(id = AppIcons.PerennialOutline),
             contentDescription = null,
             modifier = Modifier
                 .align(Alignment.CenterStart)
@@ -221,7 +221,7 @@ fun ExportableCardContent(habitTitle: String, streak: Int) {
                 .alpha(0.1f)
         )
         Image(
-            painter = painterResource(id = AppIcons.SproutOutline),
+            painter = painterResource(id = AppIcons.PerennialOutline),
             contentDescription = null,
             modifier = Modifier
                 .align(Alignment.CenterEnd)
@@ -240,23 +240,23 @@ fun ExportableCardContent(habitTitle: String, streak: Int) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
                     habitTitle,
-                    style = SproutTypography.HeadlineSmall.copy(fontSize = 24.sp),
+                    style = PerennialTypography.HeadlineSmall.copy(fontSize = 24.sp),
                     textAlign = TextAlign.Center
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
                     streak.toString(),
-                    style = SproutTypography.HeadlineLarge.copy(fontSize = 80.sp),
+                    style = PerennialTypography.HeadlineLarge.copy(fontSize = 80.sp),
                     textAlign = TextAlign.Center
                 )
                 Text(
                     "growth points",
-                    style = SproutTypography.BodyLarge,
+                    style = PerennialTypography.BodyLarge,
                     textAlign = TextAlign.Center
                 )
                 Text(
                     "and still growing",
-                    style = SproutTypography.BodyMedium,
+                    style = PerennialTypography.BodyMedium,
                     color = Color.Gray
                 )
             }
@@ -268,7 +268,7 @@ fun ExportableCardContent(habitTitle: String, streak: Int) {
                 verticalAlignment = Alignment.Bottom
             ) {
                 Image(painterResource(id = AppIcons.GrowthSeed), contentDescription = null, modifier = Modifier.size(24.dp))
-                Image(painterResource(id = AppIcons.GrowthSprout), contentDescription = null, modifier = Modifier.size(32.dp))
+                Image(painterResource(id = AppIcons.GrowthLeaf), contentDescription = null, modifier = Modifier.size(32.dp))
                 Image(painterResource(id = AppIcons.GrowthBud), contentDescription = null, modifier = Modifier.size(40.dp))
                 Image(painterResource(id = AppIcons.GrowthBloom), contentDescription = null, modifier = Modifier.size(56.dp))
             }
@@ -276,13 +276,13 @@ fun ExportableCardContent(habitTitle: String, streak: Int) {
             // Wordmark
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Image(
-                    painter = painterResource(id = AppIcons.SproutOutline),
+                    painter = painterResource(id = AppIcons.PerennialOutline),
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
                     colorFilter = ColorFilter.tint(Color(0xFF5B7F5E))
                 )
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("sprout", style = SproutTypography.HeadlineSmall.copy(fontSize = 18.sp))
+                Text("perennial", style = PerennialTypography.HeadlineSmall.copy(fontSize = 18.sp))
             }
         }
     }
@@ -294,7 +294,7 @@ private fun saveBitmapToGallery(context: Context, bitmap: Bitmap) {
         put(android.provider.MediaStore.MediaColumns.DISPLAY_NAME, filename)
         put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "image/png")
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-            put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES + "/Sprout")
+            put(android.provider.MediaStore.MediaColumns.RELATIVE_PATH, android.os.Environment.DIRECTORY_PICTURES + "/Perennial")
             put(android.provider.MediaStore.MediaColumns.IS_PENDING, 1)
         }
     }

@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.data.Habit
-import com.example.ui.theme.SproutTypography
+import com.example.ui.theme.PerennialTypography
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -44,7 +44,7 @@ fun ArchivedHabitsScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Archived Habits", style = SproutTypography.HeadlineSmall) },
+                title = { Text("Archived Habits", style = PerennialTypography.HeadlineSmall) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
@@ -58,7 +58,7 @@ fun ArchivedHabitsScreen(
             Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                 Text(
                     "No archived habits.",
-                    style = SproutTypography.BodyLarge,
+                    style = PerennialTypography.BodyLarge,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                 )
             }
@@ -96,10 +96,10 @@ fun ArchivedHabitRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(modifier = Modifier.weight(1f)) {
-            Text(habit.title, style = SproutTypography.BodyLarge)
+            Text(habit.title, style = PerennialTypography.BodyLarge)
             Text(
                 "Archived", 
-                style = SproutTypography.LabelSmallMono,
+                style = PerennialTypography.LabelSmallMono,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
             )
         }
@@ -134,13 +134,13 @@ fun DeleteConfirmationDialog(
         title = { 
             Text(
                 "Delete '${habit.title}' permanently?", 
-                style = SproutTypography.TitleMedium
+                style = PerennialTypography.TitleMedium
             ) 
         },
         text = {
             Text(
                 "This will remove all check-in history and milestones for this habit. This can't be undone.",
-                style = SproutTypography.BodyMedium
+                style = PerennialTypography.BodyMedium
             )
         },
         confirmButton = {

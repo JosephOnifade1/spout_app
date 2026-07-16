@@ -37,7 +37,7 @@ private val LightColorScheme =
   )
 
 @Composable
-fun MyApplicationTheme(
+fun PerennialTheme(
   darkTheme: Boolean = false,
   // Disabling dynamic color to enforce specific brand tokens
   dynamicColor: Boolean = false,

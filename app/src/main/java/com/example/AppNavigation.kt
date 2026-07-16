@@ -16,9 +16,11 @@ import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 @Composable
-fun SproutApp(themeViewModel: ThemeViewModel) {
+fun PerennialApp(themeViewModel: ThemeViewModel) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     val navController = rememberNavController()
-    val repository = remember { HabitRepositoryImpl() }
+    val database = remember { com.example.data.local.PerennialDatabase.getDatabase(context) }
+    val repository = remember { HabitRepositoryImpl(database.habitDao()) }
     val habits by repository.getHabits().collectAsState(initial = emptyList())
     val allCheckIns by repository.getWeeklyCheckIns().collectAsState(initial = emptyList())
     val canAddHabit by repository.canAddHabit().collectAsState(initial = true)
@@ -26,6 +28,14 @@ fun SproutApp(themeViewModel: ThemeViewModel) {
     val coroutineScope = rememberCoroutineScope()
     var milestoneToCelebrate by remember { mutableStateOf<Milestone?>(null) }
     var paywallMessage by remember { mutableStateOf<String?>(null) }
+
+    val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
+    val currentUser = auth.currentUser
+    val userName = currentUser?.displayName ?: "Friend"
+
+    LaunchedEffect(Unit) {
+        repository.syncSubscriptionStatus()
+    }
 
     milestoneToCelebrate?.let { milestone ->
         MilestoneModal(
@@ -43,7 +53,10 @@ fun SproutApp(themeViewModel: ThemeViewModel) {
             OnboardingScreen(onComplete = { navController.navigate(Routes.AUTH) })
         }
         composable(Routes.AUTH) {
-            AuthScreen(onAuthSuccess = { coroutineScope.launch { repository.initializeDefaultHabits();  
+            AuthScreen(onAuthSuccess = { coroutineScope.launch { 
+                repository.initializeDefaultHabits()
+                repository.syncSubscriptionStatus()
+                repository.onUserChanged(try { com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid } catch (e: Exception) { null })
                  navController.navigate(Routes.TODAY) {
                     popUpTo(Routes.ONBOARDING) { inclusive = true } }
                 }
@@ -51,6 +64,7 @@ fun SproutApp(themeViewModel: ThemeViewModel) {
         }
         composable(Routes.TODAY) {
             TodayScreen(
+                userName = userName,
                 habits = habits,
                 allCheckIns = allCheckIns,
                 onAddHabit = { 
@@ -205,7 +219,9 @@ fun SproutApp(themeViewModel: ThemeViewModel) {
                 onNavigateToAccount = { navController.navigate(Routes.ACCOUNT) },
                 onNavigateToNotificationTimes = { navController.navigate(Routes.NOTIFICATION_TIMES) },
                 onNavigateToArchivedHabits = { navController.navigate(Routes.ARCHIVED_HABITS) },
+                onNavigateToCustomerCenter = { navController.navigate(Routes.CUSTOMER_CENTER) },
                 onSignOut = {
+                    repository.onUserChanged(null)
                     navController.navigate(Routes.AUTH) {
                         popUpTo(0) { inclusive = true }
                     }
@@ -244,6 +260,7 @@ fun SproutApp(themeViewModel: ThemeViewModel) {
             AccountScreen(
                 onBack = { navController.popBackStack() },
                 onSignOut = {
+                    repository.onUserChanged(null)
                     navController.navigate(Routes.AUTH) {
                         popUpTo(0) { inclusive = true }
                     }
@@ -263,11 +280,11 @@ fun SproutApp(themeViewModel: ThemeViewModel) {
         }
         composable(Routes.PAYWALL) {
             PaywallScreen(
+                repository = repository,
                 onClose = { 
                     paywallMessage = null
                     navController.popBackStack() 
-                },
-                message = paywallMessage
+                }
             )
         }
         composable(Routes.SHARE) { backStackEntry ->
@@ -283,6 +300,9 @@ fun SproutApp(themeViewModel: ThemeViewModel) {
         }
         composable(Routes.NOTIFICATIONS) {
             NotificationsScreen(onBack = { navController.popBackStack() })
+        }
+        composable(Routes.CUSTOMER_CENTER) {
+            CustomerCenterScreen(onBack = { navController.popBackStack() })
         }
     }
 }

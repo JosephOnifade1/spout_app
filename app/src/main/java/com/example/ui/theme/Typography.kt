@@ -28,10 +28,10 @@ val IbmPlexMonoFontFamily = FontFamily(
 )
 
 /**
- * SproutTypography defines the core brand styles for the Sprout application.
+ * PerennialTypography defines the core brand styles for the Perennial application.
  * It uses Fraunces for display and headings, and IBM Plex Mono for technical/numeric data.
  */
-object SproutTypography {
+object PerennialTypography {
     val HeadlineLarge = TextStyle(
         fontFamily = FrauncesFontFamily,
         fontWeight = FontWeight.Bold,
@@ -106,14 +106,14 @@ object SproutTypography {
 }
 
 val AppTypography = Typography(
-    headlineLarge = SproutTypography.HeadlineLarge,
-    headlineMedium = SproutTypography.HeadlineMedium,
-    headlineSmall = SproutTypography.HeadlineSmall,
-    titleLarge = SproutTypography.TitleLarge,
-    titleMedium = SproutTypography.TitleMedium,
-    bodyLarge = SproutTypography.BodyLarge,
-    bodyMedium = SproutTypography.BodyMedium,
-    bodySmall = SproutTypography.LabelSmallMono,
+    headlineLarge = PerennialTypography.HeadlineLarge,
+    headlineMedium = PerennialTypography.HeadlineMedium,
+    headlineSmall = PerennialTypography.HeadlineSmall,
+    titleLarge = PerennialTypography.TitleLarge,
+    titleMedium = PerennialTypography.TitleMedium,
+    bodyLarge = PerennialTypography.BodyLarge,
+    bodyMedium = PerennialTypography.BodyMedium,
+    bodySmall = PerennialTypography.LabelSmallMono,
     labelLarge = TextStyle(
         fontFamily = PublicSansFontFamily,
         fontWeight = FontWeight.Medium,
@@ -128,5 +128,5 @@ val AppTypography = Typography(
         lineHeight = 16.sp,
         letterSpacing = 0.5.sp
     ),
-    labelSmall = SproutTypography.LabelSmallMono
+    labelSmall = PerennialTypography.LabelSmallMono
 )

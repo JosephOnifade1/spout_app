@@ -10,7 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.example.ui.theme.SproutTypography
+import com.example.ui.theme.PerennialTypography
 import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -27,7 +27,7 @@ fun AccountScreen(onBack: () -> Unit, onSignOut: () -> Unit) {
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Account", style = SproutTypography.HeadlineSmall) },
+                title = { Text("Account", style = PerennialTypography.HeadlineSmall) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
@@ -63,12 +63,12 @@ fun AccountScreen(onBack: () -> Unit, onSignOut: () -> Unit) {
             
             Text(
                 text = user?.email ?: "Guest User",
-                style = SproutTypography.HeadlineMedium
+                style = PerennialTypography.HeadlineMedium
             )
             
             Text(
-                text = if (user?.isAnonymous == true) "Anonymous Account" else "Verified Sprout Member",
-                style = SproutTypography.BodyLarge,
+                text = if (user?.isAnonymous == true) "Anonymous Account" else "Verified Perennial Member",
+                style = PerennialTypography.BodyLarge,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
             )
             
@@ -90,7 +90,7 @@ fun AccountScreen(onBack: () -> Unit, onSignOut: () -> Unit) {
                 ),
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp)
             ) {
-                Text("Sign out", style = SproutTypography.TitleMedium)
+                Text("Sign out", style = PerennialTypography.TitleMedium)
             }
             
             Spacer(modifier = Modifier.height(32.dp))

@@ -14,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.data.Habit
-import com.example.ui.theme.SproutTypography
+import com.example.ui.theme.PerennialTypography
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
@@ -29,7 +29,7 @@ fun NotificationTimesScreen(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             TopAppBar(
-                title = { Text("Notification Times", style = SproutTypography.HeadlineSmall) },
+                title = { Text("Notification Times", style = PerennialTypography.HeadlineSmall) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Outlined.ArrowBack, contentDescription = "Back")
@@ -41,7 +41,7 @@ fun NotificationTimesScreen(
     ) { padding ->
         if (habits.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text("No active habits found", style = SproutTypography.BodyLarge)
+                Text("No active habits found", style = PerennialTypography.BodyLarge)
             }
         } else {
             LazyColumn(
@@ -50,7 +50,7 @@ fun NotificationTimesScreen(
                 item {
                     Text(
                         "Set your preferred check-in time for each habit.",
-                        style = SproutTypography.BodyMedium,
+                        style = PerennialTypography.BodyMedium,
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
                         modifier = Modifier.padding(horizontal = 24.dp, vertical = 16.dp)
                     )
@@ -82,10 +82,10 @@ fun NotificationTimeRow(habit: Habit, onTimeClick: () -> Unit) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Column {
-            Text(habit.title, style = SproutTypography.BodyLarge)
+            Text(habit.title, style = PerennialTypography.BodyLarge)
             Text(
                 if (habit.reminderEnabled) "Reminders enabled" else "Reminders disabled",
-                style = SproutTypography.LabelSmallMono,
+                style = PerennialTypography.LabelSmallMono,
                 color = if (habit.reminderEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
             )
         }
@@ -107,7 +107,7 @@ fun NotificationTimeRow(habit: Habit, onTimeClick: () -> Unit) {
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     habit.reminderTime,
-                    style = SproutTypography.TechnicalMono,
+                    style = PerennialTypography.TechnicalMono,
                     color = MaterialTheme.colorScheme.primary
                 )
             }

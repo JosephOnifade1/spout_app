@@ -1,9 +1,15 @@
 package com.example.data
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+import androidx.room.TypeConverter
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import java.util.UUID
 
+@Entity(tableName = "users")
 data class User(
-    val uid: String = "",
+    @PrimaryKey val uid: String = "",
     val displayName: String = "",
     val email: String = "",
     val reminderStyle: String = "Voice",
@@ -12,8 +18,9 @@ data class User(
     val createdAt: Long = System.currentTimeMillis()
 )
 
+@Entity(tableName = "habits")
 data class Habit(
-    val habitId: String = UUID.randomUUID().toString(),
+    @PrimaryKey val habitId: String = UUID.randomUUID().toString(),
     val userId: String = "",
     val title: String = "",
     val targetText: String? = null,
@@ -31,8 +38,9 @@ data class Habit(
     val createdAt: Long = System.currentTimeMillis()
 )
 
+@Entity(tableName = "milestones")
 data class Milestone(
-    val milestoneId: String = UUID.randomUUID().toString(),
+    @PrimaryKey val milestoneId: String = UUID.randomUUID().toString(),
     val habitId: String = "",
     val userId: String = "local_user",
     val habitTitle: String = "",
@@ -41,19 +49,34 @@ data class Milestone(
     val encouragementLine: String = ""
 )
 
+@Entity(tableName = "check_ins")
 data class CheckIn(
-    val checkInId: String = UUID.randomUUID().toString(),
+    @PrimaryKey val checkInId: String = UUID.randomUUID().toString(),
     val habitId: String = "",
     val userId: String = "",
     val date: String = "", // e.g. "2026-07-11"
-    val status: String = "seed", // "bloom"/"bud"/"sprout"/"seed"/"resting"
+    val status: String = "seed", // "bloom"/"bud"/"perennial"/"seed"/"resting"
     val note: String = "",
     val createdAt: Long = System.currentTimeMillis()
 )
 
+class Converters {
+    @TypeConverter
+    fun fromString(value: String): List<Int> {
+        val listType = object : TypeToken<List<Int>>() {}.type
+        return Gson().fromJson(value, listType)
+    }
+
+    @TypeConverter
+    fun fromList(list: List<Int>): String {
+        val gson = Gson()
+        return gson.toJson(list)
+    }
+}
+
 enum class GrowthStatus(val value: String) {
     SEED("seed"),
-    SPROUT("sprout"),
+    SPROUT("perennial"),
     BUD("bud"),
     BLOOM("bloom"),
     RESTING("resting"),

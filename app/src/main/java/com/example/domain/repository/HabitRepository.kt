@@ -19,6 +19,11 @@ interface HabitRepository {
 
     fun getSubscriptionTier(): Flow<String>
     suspend fun updateSubscriptionTier(tier: String)
+    suspend fun syncSubscriptionStatus()
+    fun onUserChanged(userId: String?)
+    fun updateSubscriptionFromCustomerInfo(customerInfo: com.revenuecat.purchases.CustomerInfo)
+    suspend fun getOfferings(): com.revenuecat.purchases.Offerings?
+    suspend fun purchasePackage(activity: android.app.Activity, packageToPurchase: com.revenuecat.purchases.Package): Result<Unit>
     fun canAddHabit(): Flow<Boolean>
 
     suspend fun toggleCheckIn(habitId: String): Milestone?

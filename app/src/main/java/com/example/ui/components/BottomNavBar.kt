@@ -23,7 +23,7 @@ fun BottomNavBar(
             onClick = { onNavigate("today") },
             icon = { 
                 Icon(
-                    painterResource(id = if (currentRoute == "today") AppIcons.GrowthSproutFilled else AppIcons.GrowthSprout), 
+                    painterResource(id = if (currentRoute == "today") AppIcons.GrowthLeafFilled else AppIcons.GrowthLeaf), 
                     contentDescription = "Today", 
                     modifier = Modifier.size(24.dp)
                 ) 

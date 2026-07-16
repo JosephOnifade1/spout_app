@@ -33,7 +33,7 @@ import com.example.data.Habit
 import com.example.data.Milestone
 import com.example.ui.components.BottomNavBar
 import com.example.ui.theme.AppIcons
-import com.example.ui.theme.SproutTypography
+import com.example.ui.theme.PerennialTypography
 import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -82,8 +82,8 @@ fun MilestonesScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(
-                        painter = painterResource(id = AppIcons.SproutOutline),
-                        contentDescription = "Sprout icon",
+                        painter = painterResource(id = AppIcons.PerennialOutline),
+                        contentDescription = "Perennial icon",
                         modifier = Modifier.size(28.dp),
                         colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.primary)
                     )
@@ -101,13 +101,13 @@ fun MilestonesScreen(
                     "Milestones",
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
-                    style = SproutTypography.HeadlineLarge
+                    style = PerennialTypography.HeadlineLarge
                 )
                 Text(
                     "A journal of your growth moments.",
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Center,
-                    style = SproutTypography.BodyMedium,
+                    style = PerennialTypography.BodyMedium,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                 )
                 Spacer(modifier = Modifier.height(32.dp))
@@ -205,22 +205,22 @@ fun MilestoneCard(milestone: Milestone, index: Int) {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     Text(
                         milestone.habitTitle,
-                        style = SproutTypography.BodyLarge.copy(fontWeight = FontWeight.Bold)
+                        style = PerennialTypography.BodyLarge.copy(fontWeight = FontWeight.Bold)
                     )
                     Text(
                         milestone.dateReached,
-                        style = SproutTypography.LabelSmallMono,
+                        style = PerennialTypography.LabelSmallMono,
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                     )
                 }
                 Text(
                     "${milestone.tier} growth points",
-                    style = SproutTypography.BodyMedium
+                    style = PerennialTypography.BodyMedium
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     milestone.encouragementLine,
-                    style = SproutTypography.BodyMedium,
+                    style = PerennialTypography.BodyMedium,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                 )
             }
@@ -296,11 +296,11 @@ fun InProgressMilestoneCard(habit: Habit, nextTier: Int, index: Int) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
                     habit.title,
-                    style = SproutTypography.BodyLarge.copy(fontWeight = FontWeight.Bold)
+                    style = PerennialTypography.BodyLarge.copy(fontWeight = FontWeight.Bold)
                 )
                 Text(
                     "In progress",
-                    style = SproutTypography.BodyMedium,
+                    style = PerennialTypography.BodyMedium,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -315,14 +315,14 @@ fun InProgressMilestoneCard(habit: Habit, nextTier: Int, index: Int) {
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         "${habit.growthPoints}/$nextTier",
-                        style = SproutTypography.TechnicalMono.copy(fontSize = 12.sp),
+                        style = PerennialTypography.TechnicalMono.copy(fontSize = 12.sp),
                         color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
                     )
                 }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     "${habit.growthPoints} of $nextTier points",
-                    style = SproutTypography.BodyMedium.copy(fontSize = 12.sp),
+                    style = PerennialTypography.BodyMedium.copy(fontSize = 12.sp),
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
                 )
             }
@@ -347,7 +347,7 @@ fun EmptyMilestonesState() {
         Text(
             "Start a habit to grow your first milestone",
             textAlign = TextAlign.Center,
-            style = SproutTypography.BodyLarge,
+            style = PerennialTypography.BodyLarge,
             color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
         )
     }

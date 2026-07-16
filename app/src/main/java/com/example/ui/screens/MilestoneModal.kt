@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import com.example.ui.theme.AppIcons
 import com.example.ui.theme.Butter
-import com.example.ui.theme.SproutTypography
+import com.example.ui.theme.PerennialTypography
 
 @Composable
 fun MilestoneModal(
@@ -50,24 +50,24 @@ fun MilestoneModal(
                 ) {
                     Text(
                         "Amazing!",
-                        style = SproutTypography.LabelSmallMono.copy(fontWeight = FontWeight.Bold),
+                        style = PerennialTypography.LabelSmallMono.copy(fontWeight = FontWeight.Bold),
                         color = Color(0xFFC97B84) // Dusty Clay accent
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         "You've nurtured this for",
-                        style = SproutTypography.BodyLarge,
+                        style = PerennialTypography.BodyLarge,
                         textAlign = TextAlign.Center
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                     Text(
                         streak.toString(),
-                        style = SproutTypography.HeadlineLarge.copy(fontSize = 72.sp),
+                        style = PerennialTypography.HeadlineLarge.copy(fontSize = 72.sp),
                         textAlign = TextAlign.Center
                     )
                     Text(
                         "growth points",
-                        style = SproutTypography.BodyLarge,
+                        style = PerennialTypography.BodyLarge,
                         textAlign = TextAlign.Center
                     )
                     
@@ -102,7 +102,7 @@ fun MilestoneModal(
                         colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF5B7F5E))
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text("Share this milestone", style = SproutTypography.BodyLarge.copy(fontWeight = FontWeight.Bold))
+                            Text("Share this milestone", style = PerennialTypography.BodyLarge.copy(fontWeight = FontWeight.Bold))
                             Spacer(modifier = Modifier.width(8.dp))
                             Icon(Icons.Outlined.Share, contentDescription = null, modifier = Modifier.size(20.dp))
                         }
@@ -119,7 +119,7 @@ fun MilestoneModal(
                         border = BorderStroke(1.dp, Color.White.copy(alpha = 0.5f)),
                         colors = ButtonDefaults.outlinedButtonColors(containerColor = Color.White.copy(alpha = 0.8f))
                     ) {
-                        Text("Keep going", style = SproutTypography.BodyLarge, color = Color.Black)
+                        Text("Keep going", style = PerennialTypography.BodyLarge, color = Color.Black)
                     }
                 }
             }
@@ -133,7 +133,7 @@ private fun DecorativeElements() {
     Box(modifier = Modifier.fillMaxWidth().height(400.dp)) {
         // Just a few icons for visual flair
         Icon(
-            painter = painterResource(id = AppIcons.SproutOutline),
+            painter = painterResource(id = AppIcons.PerennialOutline),
             contentDescription = null,
             modifier = Modifier
                 .size(24.dp)
@@ -142,7 +142,7 @@ private fun DecorativeElements() {
             tint = Color.DarkGray
         )
         Icon(
-            painter = painterResource(id = AppIcons.SproutOutline),
+            painter = painterResource(id = AppIcons.PerennialOutline),
             contentDescription = null,
             modifier = Modifier
                 .size(20.dp)

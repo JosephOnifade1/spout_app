@@ -18,7 +18,7 @@ import com.example.data.GrowthStatus
 import com.example.data.Habit
 import com.example.ui.components.GrowthBedRow
 import com.example.ui.theme.AppIcons
-import com.example.ui.theme.SproutTypography
+import com.example.ui.theme.PerennialTypography
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -129,7 +129,7 @@ fun HabitDetailScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = habit.currentStreak.toString().padStart(3, '0'),
-                        style = SproutTypography.TechnicalMono.copy(fontSize = 45.sp),
+                        style = PerennialTypography.TechnicalMono.copy(fontSize = 45.sp),
                         fontWeight = FontWeight.Medium
                     )
                     Text("days", style = MaterialTheme.typography.labelMedium)
@@ -146,7 +146,7 @@ fun HabitDetailScreen(
                     }
                     Text(
                         text = currentStatus.value.uppercase(),
-                        style = SproutTypography.TechnicalMono.copy(fontSize = 20.sp),
+                        style = PerennialTypography.TechnicalMono.copy(fontSize = 20.sp),
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(vertical = 12.dp)

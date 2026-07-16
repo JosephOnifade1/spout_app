@@ -14,7 +14,7 @@ android {
   compileSdk { version = release(36) { minorApiLevel = 1 } }
 
   defaultConfig {
-    applicationId = "com.aistudio.sprout.xjfakl"
+    applicationId = "com.perennialapp.android"
     minSdk = 24
     targetSdk = 36
     versionCode = 1
@@ -93,8 +93,11 @@ dependencies {
   implementation(libs.androidx.lifecycle.viewmodel.compose)
   implementation(libs.androidx.navigation.compose)
   implementation(libs.reorderable)
-  // implementation(libs.androidx.room.ktx)
-  // implementation(libs.androidx.room.runtime)
+  implementation(libs.gson)
+  implementation(libs.revenuecat)
+  implementation(libs.revenuecat.ui)
+  implementation(libs.androidx.room.ktx)
+  implementation(libs.androidx.room.runtime)
   // implementation(libs.coil.compose)
   // implementation(libs.converter.moshi)
   // implementation(libs.firebase.ai)
