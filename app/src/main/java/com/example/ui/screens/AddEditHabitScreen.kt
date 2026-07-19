@@ -10,6 +10,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,7 +27,7 @@ import java.util.UUID
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddEditHabitScreen(
-    habitId: String?,
+    initialHabit: Habit?,
     onSave: (Habit) -> Unit,
     onBack: () -> Unit
 ) {
@@ -33,23 +35,30 @@ fun AddEditHabitScreen(
         Pair("water", AppIcons.HabitWater),
         Pair("read", AppIcons.HabitRead),
         Pair("exercise", AppIcons.HabitExercise),
-        Pair("meditate", AppIcons.HabitMeditate)
+        Pair("meditate", AppIcons.HabitMeditate),
+        Pair("sprout", AppIcons.HabitSprout),
+        Pair("pot", AppIcons.HabitPot),
+        Pair("bud", AppIcons.HabitBud),
+        Pair("sun", AppIcons.HabitSun)
     )
 
-    var title by remember { mutableStateOf("") }
-    var selectedIconKey by remember { mutableStateOf(icons[0].first) }
-    var selectedColor by remember { mutableStateOf("moss") }
-    var frequency by remember { mutableStateOf("Daily") }
-    var reminderEnabled by remember { mutableStateOf(true) }
-    var reminderTime by remember { mutableStateOf("07:30 PM") }
+    var title by remember { mutableStateOf(initialHabit?.title ?: "") }
+    var selectedIconKey by remember { mutableStateOf(initialHabit?.iconKey ?: "water") }
+    var selectedColor by remember { mutableStateOf(initialHabit?.colorTag ?: "moss") }
+    var frequency by remember { mutableStateOf(initialHabit?.frequency?.lowercase() ?: "daily") }
+    var selectedCustomDays by remember { mutableStateOf(initialHabit?.customDays ?: emptyList<Int>()) }
+    var reminderEnabled by remember { mutableStateOf(initialHabit?.reminderEnabled ?: true) }
+    var reminderTime by remember { mutableStateOf(initialHabit?.reminderTime ?: "07:30 PM") }
+    var showTimePicker by remember { mutableStateOf(false) }
 
-    val colors = listOf("moss", "dustyClay", "butter", "paperSage", "inkTeal", "soil")
+    val colors = listOf("moss", "dustyClay", "butter", "soil", "inkTeal", "charcoalInk")
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
+            val context = androidx.compose.ui.platform.LocalContext.current
             TopAppBar(
-                title = { Text(if (habitId == null) "Add Habit" else "Edit Habit", style = MaterialTheme.typography.titleLarge) },
+                title = { Text(if (initialHabit == null) "Add Habit" else "Edit Habit", style = MaterialTheme.typography.titleLarge) },
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Text("←", style = MaterialTheme.typography.titleLarge)
@@ -57,14 +66,31 @@ fun AddEditHabitScreen(
                 },
                 actions = {
                     TextButton(onClick = { 
+                        if (title.isBlank()) {
+                            android.widget.Toast.makeText(context, "Please enter a habit title", android.widget.Toast.LENGTH_SHORT).show()
+                            return@TextButton
+                        }
+                        if (frequency == "custom" && selectedCustomDays.isEmpty()) {
+                            android.widget.Toast.makeText(context, "Please select at least one custom day", android.widget.Toast.LENGTH_SHORT).show()
+                            return@TextButton
+                        }
+                        
                         onSave(Habit(
-                            habitId = habitId ?: UUID.randomUUID().toString(),
-                            title = title.takeIf { it.isNotBlank() } ?: "New Habit",
+                            habitId = initialHabit?.habitId ?: UUID.randomUUID().toString(),
+                            userId = initialHabit?.userId ?: "",
+                            title = title.trim(),
                             iconKey = selectedIconKey,
                             colorTag = selectedColor,
                             frequency = frequency,
+                            customDays = selectedCustomDays,
                             reminderEnabled = reminderEnabled,
-                            reminderTime = reminderTime
+                            reminderTime = reminderTime,
+                            currentStreak = initialHabit?.currentStreak ?: 0,
+                            longestStreak = initialHabit?.longestStreak ?: 0,
+                            growthPoints = initialHabit?.growthPoints ?: 0,
+                            archived = initialHabit?.archived ?: false,
+                            sortOrder = initialHabit?.sortOrder ?: 0,
+                            createdAt = initialHabit?.createdAt ?: System.currentTimeMillis()
                         ))
                      }) {
                         Text("Save", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
@@ -104,29 +130,44 @@ fun AddEditHabitScreen(
             item {
                 Text("Choose an icon", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onBackground.copy(alpha=0.6f))
                 Spacer(modifier = Modifier.height(16.dp))
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceEvenly) {
-                    icons.forEach { (key, resId) ->
-                        Box(
-                            modifier = Modifier
-                                .size(56.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(MaterialTheme.colorScheme.surface)
-                                .border(
-                                    2.dp,
-                                    if (selectedIconKey == key) MaterialTheme.colorScheme.primary else Color.Transparent,
-                                    RoundedCornerShape(16.dp)
-                                )
-                                .clickable { selectedIconKey = key },
-                            contentAlignment = Alignment.Center
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    val chunkedIcons = icons.chunked(4)
+                    chunkedIcons.forEach { rowIcons ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            Image(
-                                painter = painterResource(id = resId),
-                                contentDescription = null,
-                                modifier = Modifier.size(28.dp),
-                                colorFilter = ColorFilter.tint(
-                                    if (selectedIconKey == key) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
-                                )
-                            )
+                            rowIcons.forEach { (key, resId) ->
+                                val isSelected = selectedIconKey == key
+                                Box(
+                                    modifier = Modifier
+                                        .size(56.dp)
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .background(
+                                            if (isSelected) MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+                                            else MaterialTheme.colorScheme.surface
+                                        )
+                                        .border(
+                                            if (isSelected) 3.dp else 1.dp,
+                                            if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                                            RoundedCornerShape(16.dp)
+                                        )
+                                        .clickable { selectedIconKey = key },
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Image(
+                                        painter = painterResource(id = resId),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(28.dp),
+                                        colorFilter = ColorFilter.tint(
+                                            if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                                        )
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -137,18 +178,31 @@ fun AddEditHabitScreen(
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                     colors.forEach { color ->
+                        val isSelected = selectedColor == color
                         Box(
                             modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(getColorFromString(color))
+                                .size(44.dp)
                                 .border(
-                                    width = if (selectedColor == color) 2.dp else 0.dp,
-                                    color = if (selectedColor == color) MaterialTheme.colorScheme.onSurface else Color.Transparent,
+                                    width = if (isSelected) 3.dp else 1.dp,
+                                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                                     shape = CircleShape
                                 )
-                                .clickable { selectedColor = color }
-                        )
+                                .padding(4.dp)
+                                .clip(CircleShape)
+                                .background(getColorFromString(color))
+                                .clickable { selectedColor = color },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            if (isSelected) {
+                                val checkColor = if (color == "butter") Color.Black else Color.White
+                                Text(
+                                    text = "✓",
+                                    color = checkColor,
+                                    fontWeight = FontWeight.Bold,
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -157,11 +211,20 @@ fun AddEditHabitScreen(
                 Text("Frequency", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onBackground.copy(alpha=0.6f))
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("Daily", "Weekdays", "Custom days").forEach { opt ->
+                    listOf(
+                        Pair("Daily", "daily"),
+                        Pair("Weekdays", "weekdays"),
+                        Pair("Custom days", "custom")
+                    ).forEach { (label, value) ->
                         FilterChip(
-                            selected = frequency == opt,
-                            onClick = { frequency = opt },
-                            label = { Text(opt) },
+                            selected = frequency == value,
+                            onClick = { 
+                                frequency = value
+                                if (value != "custom") {
+                                    selectedCustomDays = emptyList()
+                                }
+                            },
+                            label = { Text(label) },
                             shape = CircleShape,
                             colors = FilterChipDefaults.filterChipColors(
                                 containerColor = MaterialTheme.colorScheme.surface,
@@ -171,12 +234,69 @@ fun AddEditHabitScreen(
                         )
                     }
                 }
+                
+                if (frequency == "custom") {
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "Select days of the week", 
+                        style = MaterialTheme.typography.labelMedium, 
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        val daysOfWeek = listOf(
+                            Pair("M", 1),
+                            Pair("T", 2),
+                            Pair("W", 3),
+                            Pair("T", 4),
+                            Pair("F", 5),
+                            Pair("S", 6),
+                            Pair("S", 7)
+                        )
+                        daysOfWeek.forEach { (label, dayVal) ->
+                            val isDaySelected = selectedCustomDays.contains(dayVal)
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        if (isDaySelected) MaterialTheme.colorScheme.primary
+                                        else MaterialTheme.colorScheme.surface
+                                    )
+                                    .border(
+                                        1.dp,
+                                        if (isDaySelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
+                                        CircleShape
+                                    )
+                                    .clickable {
+                                        selectedCustomDays = if (isDaySelected) {
+                                            selectedCustomDays - dayVal
+                                        } else {
+                                            selectedCustomDays + dayVal
+                                        }
+                                    },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = label,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (isDaySelected) MaterialTheme.colorScheme.onPrimary
+                                    else MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                        }
+                    }
+                }
             }
             
             item {
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                     Text("Reminder time", style = MaterialTheme.typography.labelLarge)
-                    TextButton(onClick = { /* TODO */ }) {
+                    TextButton(onClick = { showTimePicker = true }) {
                         Text(reminderTime, color = MaterialTheme.colorScheme.onSurface)
                     }
                 }
@@ -193,16 +313,109 @@ fun AddEditHabitScreen(
             item { Spacer(modifier = Modifier.height(32.dp)) }
         }
     }
+
+    if (showTimePicker) {
+        TimeSelectionDialog(
+            initialTime = reminderTime,
+            onDismiss = { showTimePicker = false },
+            onConfirm = { selected ->
+                reminderTime = selected
+                showTimePicker = false
+            }
+        )
+    }
+}
+
+@Composable
+private fun TimeSelectionDialog(
+    initialTime: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    val parts = initialTime.split(" ", ":")
+    var hour by remember { mutableStateOf(parts.getOrNull(0)?.toIntOrNull() ?: 7) }
+    var minute by remember { mutableStateOf(parts.getOrNull(1)?.toIntOrNull() ?: 30) }
+    var amPm by remember { mutableStateOf(parts.getOrNull(2) ?: "PM") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Select Reminder Time") },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        IconButton(onClick = { hour = if (hour == 12) 1 else hour + 1 }) {
+                            Text("▲", color = MaterialTheme.colorScheme.primary)
+                        }
+                        Text(
+                            text = hour.toString().padStart(2, '0'),
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        IconButton(onClick = { hour = if (hour == 1) 12 else hour - 1 }) {
+                            Text("▼", color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                    Text(":", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        IconButton(onClick = { minute = (minute + 5) % 60 }) {
+                            Text("▲", color = MaterialTheme.colorScheme.primary)
+                        }
+                        Text(
+                            text = minute.toString().padStart(2, '0'),
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        IconButton(onClick = { minute = if (minute == 0) 55 else (minute - 5 + 60) % 60 }) {
+                            Text("▼", color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Button(
+                            onClick = { amPm = if (amPm == "AM") "PM" else "AM" },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                contentColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Text(amPm)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                val formattedTime = String.format("%02d:%02d %s", hour, minute, amPm)
+                onConfirm(formattedTime)
+            }) {
+                Text("OK", fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 fun getColorFromString(name: String): Color {
-    return when (name) {
+    return when (name.lowercase()) {
         "moss" -> Color(0xFF5B7F5E)
-        "dustyClay" -> Color(0xFFC97B84)
+        "dustyclay" -> Color(0xFFC97B84)
         "butter" -> Color(0xFFF0C868)
-        "paperSage" -> Color(0xFFEDF1EA)
-        "inkTeal" -> Color(0xFF1B2E2B)
         "soil" -> Color(0xFF8C7A6B)
-        else -> Color.Gray
+        "inkteal" -> Color(0xFF1B2E2B)
+        "charcoalink" -> Color(0xFF2B2B28)
+        "papersage" -> Color(0xFFEDF1EA)
+        else -> Color(0xFF5B7F5E)
     }
 }

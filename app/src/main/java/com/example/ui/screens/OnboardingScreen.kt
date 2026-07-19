@@ -30,13 +30,39 @@ import com.example.ui.theme.AppIcons
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(onComplete: () -> Unit) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var selectedOption by remember { mutableStateOf("Voice") }
     val pagerState = rememberPagerState(pageCount = { 3 })
+    
+    var showPermissionRationale by remember { mutableStateOf(false) }
+    
+    val permissionLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        // Proceed to next step regardless of grant state so user is never stuck
+        onComplete()
+    }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         bottomBar = {
             if (pagerState.currentPage == 2) {
                 Button(
-                    onClick = onComplete,
+                    onClick = {
+                        val sharedPrefs = context.getSharedPreferences("perennial_settings", android.content.Context.MODE_PRIVATE)
+                        sharedPrefs.edit().putString("reminder_style", selectedOption).apply()
+                        
+                        if (selectedOption != "None" && android.os.Build.VERSION.SDK_INT >= 33) {
+                            val hasPermission = context.checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                            if (!hasPermission) {
+                                showPermissionRationale = true
+                            } else {
+                                onComplete()
+                            }
+                        } else {
+                            onComplete()
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 24.dp).height(52.dp),
                     shape = CircleShape,
                     colors = ButtonDefaults.buttonColors(
@@ -74,9 +100,58 @@ fun OnboardingScreen(onComplete: () -> Unit) {
             when (page) {
                 0 -> OnboardingPage1()
                 1 -> OnboardingPage2()
-                2 -> OnboardingPage3()
+                2 -> OnboardingPage3(selectedOption = selectedOption, onOptionSelected = { selectedOption = it })
             }
         }
+    }
+
+    if (showPermissionRationale) {
+        AlertDialog(
+            onDismissRequest = { 
+                showPermissionRationale = false
+                onComplete()
+            },
+            title = {
+                Text(
+                    "Enable Gentle Reminders?",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            },
+            text = {
+                Text(
+                    "To keep your virtual plants healthy and nurture your daily habits, Perennial can send you silent, warm, and guilt-free nudges. Would you like to enable them?",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showPermissionRationale = false
+                        if (android.os.Build.VERSION.SDK_INT >= 33) {
+                            permissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+                        } else {
+                            onComplete()
+                        }
+                    }
+                ) {
+                    Text("Yes, enable", color = MaterialTheme.colorScheme.primary)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showPermissionRationale = false
+                        onComplete()
+                    }
+                ) {
+                    Text("Maybe later", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            },
+            shape = RoundedCornerShape(28.dp),
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     }
 }
 
@@ -148,9 +223,7 @@ fun OnboardingPage2() {
 }
 
 @Composable
-fun OnboardingPage3() {
-    var selectedOption by remember { mutableStateOf("Voice") }
-
+fun OnboardingPage3(selectedOption: String, onOptionSelected: (String) -> Unit) {
     Column(
         modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -171,21 +244,21 @@ fun OnboardingPage3() {
                 subtitle = "A gentle nudge to help you remember.", 
                 iconRes = AppIcons.GrowthLeaf, 
                 selected = selectedOption == "Voice",
-                onClick = { selectedOption = "Voice" }
+                onClick = { onOptionSelected("Voice") }
             )
             ReminderOptionCard(
                 title = "Text", 
                 subtitle = "A kind text at the right time.", 
                 iconRes = AppIcons.HabitRead, 
                 selected = selectedOption == "Text",
-                onClick = { selectedOption = "Text" }
+                onClick = { onOptionSelected("Text") }
             )
             ReminderOptionCard(
                 title = "None", 
                 subtitle = "I'll check in on my own.", 
                 iconRes = AppIcons.GrowthSeed, 
                 selected = selectedOption == "None",
-                onClick = { selectedOption = "None" }
+                onClick = { onOptionSelected("None") }
             )
         }
     }

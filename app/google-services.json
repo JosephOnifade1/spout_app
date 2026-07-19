@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "510637800500",
+    "project_id": "perennial-141cb",
+    "storage_bucket": "perennial-141cb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:510637800500:android:8dfdec9cb541f9a7bc5e61",
+        "android_client_info": {
+          "package_name": "com.perennialapp.android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "510637800500-rrmiqdfee04kklp2rsm4og6m4tcr8fl5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.perennialapp.android",
+            "certificate_hash": "b931fb9d2603029f64c2e8477fbb35a895780925"
+          }
+        },
+        {
+          "client_id": "510637800500-o3d51ejfo0m3cdedel8hpsothtkf8qmn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA53N1bH2dfieBfblU8F7g_Wo12791OSOw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "510637800500-o3d51ejfo0m3cdedel8hpsothtkf8qmn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

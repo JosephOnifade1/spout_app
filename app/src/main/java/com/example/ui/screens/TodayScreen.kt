@@ -49,16 +49,29 @@ fun TodayScreen(
         habits.filter { !it.archived }.sortedBy { it.sortOrder }
     }
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        bottomBar = {
-            BottomNavBar(
-                currentRoute = "today",
-                onNavigate = { route -> 
-                    onNavigateToTab(route) 
+    var greeting by remember { mutableStateOf("Good morning,") }
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
+            if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
+                val hour = java.time.LocalTime.now().hour
+                greeting = when (hour) {
+                    in 5..11 -> "Good morning,"
+                    in 12..16 -> "Good afternoon,"
+                    in 17..20 -> "Good evening,"
+                    else -> "Still up?"
                 }
-            )
+            }
         }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
+
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -95,7 +108,7 @@ fun TodayScreen(
                     
                     Spacer(modifier = Modifier.height(32.dp))
                     
-                    Text("Good morning,", style = MaterialTheme.typography.headlineLarge)
+                    Text(greeting, style = MaterialTheme.typography.headlineLarge)
                     Text(userName, style = MaterialTheme.typography.headlineLarge)
                     
                     Spacer(modifier = Modifier.height(8.dp))

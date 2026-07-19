@@ -47,8 +47,9 @@ fun SettingsScreen(
     val coroutineScope = rememberCoroutineScope()
     val isDarkTheme by themeViewModel.isDarkTheme.collectAsState()
     
+    val sharedPrefs = remember(context) { context.getSharedPreferences("perennial_settings", android.content.Context.MODE_PRIVATE) }
     var showReminderDialog by remember { mutableStateOf(false) }
-    var selectedReminderStyle by remember { mutableStateOf("Voice") }
+    var selectedReminderStyle by remember { mutableStateOf(sharedPrefs.getString("reminder_style", "Voice") ?: "Voice") }
 
     val user = remember {
         try {
@@ -62,8 +63,18 @@ fun SettingsScreen(
         ReminderStyleDialog(
             currentStyle = selectedReminderStyle,
             onDismiss = { showReminderDialog = false },
-            onSelect = { 
-                selectedReminderStyle = it
+            onSelect = { selectedStyle ->
+                selectedReminderStyle = selectedStyle
+                sharedPrefs.edit().putString("reminder_style", selectedStyle).apply()
+                if (user != null) {
+                    try {
+                        val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                        db.collection("users").document(user.uid)
+                            .update("reminder_style", selectedStyle, "reminderStyle", selectedStyle)
+                    } catch (e: Exception) {
+                        // Fail silently if offline or not initialized
+                    }
+                }
                 showReminderDialog = false
             }
         )

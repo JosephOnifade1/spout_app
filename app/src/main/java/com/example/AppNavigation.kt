@@ -1,6 +1,11 @@
 package com.example
 
 import androidx.compose.runtime.*
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.padding
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -20,7 +25,7 @@ fun PerennialApp(themeViewModel: ThemeViewModel) {
     val context = androidx.compose.ui.platform.LocalContext.current
     val navController = rememberNavController()
     val database = remember { com.example.data.local.PerennialDatabase.getDatabase(context) }
-    val repository = remember { HabitRepositoryImpl(database.habitDao()) }
+    val repository = remember { HabitRepositoryImpl(database.habitDao(), context.applicationContext) }
     val habits by repository.getHabits().collectAsState(initial = emptyList())
     val allCheckIns by repository.getWeeklyCheckIns().collectAsState(initial = emptyList())
     val canAddHabit by repository.canAddHabit().collectAsState(initial = true)
@@ -29,9 +34,49 @@ fun PerennialApp(themeViewModel: ThemeViewModel) {
     var milestoneToCelebrate by remember { mutableStateOf<Milestone?>(null) }
     var paywallMessage by remember { mutableStateOf<String?>(null) }
 
-    val auth = com.google.firebase.auth.FirebaseAuth.getInstance()
-    val currentUser = auth.currentUser
-    val userName = currentUser?.displayName ?: "Friend"
+    val auth = remember { com.google.firebase.auth.FirebaseAuth.getInstance() }
+    var currentUser by remember { mutableStateOf(auth.currentUser) }
+
+    DisposableEffect(auth) {
+        val listener = com.google.firebase.auth.FirebaseAuth.AuthStateListener { firebaseAuth ->
+            currentUser = firebaseAuth.currentUser
+        }
+        auth.addAuthStateListener(listener)
+        onDispose {
+            auth.removeAuthStateListener(listener)
+        }
+    }
+
+    val userName by repository.getUserDisplayName().collectAsState(initial = "Friend")
+
+    LaunchedEffect(currentUser) {
+        repository.onUserChanged(currentUser?.uid)
+        if (currentUser == null) {
+            // If user is logged out, and not on onboarding, send to auth
+            val currentRoute = navController.currentBackStackEntry?.destination?.route
+            if (currentRoute != Routes.AUTH && currentRoute != Routes.ONBOARDING) {
+                navController.navigate(Routes.AUTH) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+        } else {
+            // User just logged in, if they were on Auth, send them to Today
+            val currentRoute = navController.currentBackStackEntry?.destination?.route
+            if (currentRoute == Routes.AUTH) {
+                coroutineScope.launch {
+                    repository.initializeDefaultHabits()
+                    repository.syncSubscriptionStatus()
+                    navController.navigate(Routes.TODAY) {
+                        popUpTo(Routes.AUTH) { inclusive = true }
+                    }
+                }
+            } else {
+                coroutineScope.launch {
+                    repository.initializeDefaultHabits()
+                }
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
         repository.syncSubscriptionStatus()
@@ -48,18 +93,56 @@ fun PerennialApp(themeViewModel: ThemeViewModel) {
         )
     }
 
-    NavHost(navController = navController, startDestination = Routes.ONBOARDING) {
+    val startRoute = remember {
+        if (com.google.firebase.auth.FirebaseAuth.getInstance().currentUser != null) {
+            Routes.TODAY
+        } else {
+            Routes.ONBOARDING
+        }
+    }
+
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
+
+    val showBottomBar = currentRoute in listOf(
+        Routes.TODAY,
+        Routes.GARDEN,
+        Routes.MILESTONES,
+        Routes.SETTINGS
+    )
+
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        bottomBar = {
+            if (showBottomBar) {
+                com.example.ui.components.BottomNavBar(
+                    currentRoute = currentRoute ?: Routes.TODAY,
+                    onNavigate = { route ->
+                        if (currentRoute != route) {
+                            navController.navigate(route) {
+                                popUpTo(Routes.TODAY) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    ) { innerPadding ->
+        NavHost(
+            navController = navController,
+            startDestination = startRoute,
+            modifier = Modifier.padding(innerPadding)
+        ) {
         composable(Routes.ONBOARDING) {
             OnboardingScreen(onComplete = { navController.navigate(Routes.AUTH) })
         }
         composable(Routes.AUTH) {
-            AuthScreen(onAuthSuccess = { coroutineScope.launch { 
-                repository.initializeDefaultHabits()
-                repository.syncSubscriptionStatus()
-                repository.onUserChanged(try { com.google.firebase.auth.FirebaseAuth.getInstance().currentUser?.uid } catch (e: Exception) { null })
-                 navController.navigate(Routes.TODAY) {
-                    popUpTo(Routes.ONBOARDING) { inclusive = true } }
-                }
+            AuthScreen(onAuthSuccess = { 
+                // Navigation handled by AuthStateListener
             })
         }
         composable(Routes.TODAY) {
@@ -134,7 +217,7 @@ fun PerennialApp(themeViewModel: ThemeViewModel) {
         }
         composable(Routes.ADD_EDIT_HABIT) {
             AddEditHabitScreen(
-                habitId = null,
+                initialHabit = null,
                 onSave = { habit -> 
                     coroutineScope.launch { 
                         repository.saveHabit(habit)
@@ -146,11 +229,12 @@ fun PerennialApp(themeViewModel: ThemeViewModel) {
         }
         composable(Routes.EDIT_HABIT) { backStackEntry ->
             val habitId = backStackEntry.arguments?.getString("habitId")
+            val habit = habits.find { it.habitId == habitId }
             AddEditHabitScreen(
-                habitId = habitId,
-                onSave = { habit -> 
+                initialHabit = habit,
+                onSave = { updatedHabit -> 
                     coroutineScope.launch { 
-                        repository.saveHabit(habit.copy(habitId = habitId ?: UUID.randomUUID().toString()))
+                        repository.saveHabit(updatedHabit)
                         navController.popBackStack() 
                     }
                 },
@@ -221,10 +305,7 @@ fun PerennialApp(themeViewModel: ThemeViewModel) {
                 onNavigateToArchivedHabits = { navController.navigate(Routes.ARCHIVED_HABITS) },
                 onNavigateToCustomerCenter = { navController.navigate(Routes.CUSTOMER_CENTER) },
                 onSignOut = {
-                    repository.onUserChanged(null)
-                    navController.navigate(Routes.AUTH) {
-                        popUpTo(0) { inclusive = true }
-                    }
+                    com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
                 },
                 themeViewModel = themeViewModel,
                 subscriptionTier = subscriptionTier,
@@ -260,10 +341,7 @@ fun PerennialApp(themeViewModel: ThemeViewModel) {
             AccountScreen(
                 onBack = { navController.popBackStack() },
                 onSignOut = {
-                    repository.onUserChanged(null)
-                    navController.navigate(Routes.AUTH) {
-                        popUpTo(0) { inclusive = true }
-                    }
+                    com.google.firebase.auth.FirebaseAuth.getInstance().signOut()
                 }
             )
         }
@@ -304,5 +382,6 @@ fun PerennialApp(themeViewModel: ThemeViewModel) {
         composable(Routes.CUSTOMER_CENTER) {
             CustomerCenterScreen(onBack = { navController.popBackStack() })
         }
+    }
     }
 }

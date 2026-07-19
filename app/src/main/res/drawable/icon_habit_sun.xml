@@ -1,0 +1,39 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24.0"
+    android:viewportHeight="24.0">
+    <!-- Center circle -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M12,8C9.79,8 8,9.79 8,12C8,14.21 9.79,16 12,16C14.21,16 16,14.21 16,12C16,9.79 14.21,8 12,8Z"/>
+    <!-- Top ray -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M11,3H13V6H11V3Z"/>
+    <!-- Bottom ray -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M11,18H13V21H11V18Z"/>
+    <!-- Left ray -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M3,11H6V13H3V11Z"/>
+    <!-- Right ray -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M18,11H21V13H18V11Z"/>
+    <!-- Diagonal rays -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M5.5,5.5L7.5,7.5L6,9L4,7L5.5,5.5Z"/>
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M18.5,18.5L16.5,16.5L18,15L20,17L18.5,18.5Z"/>
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M5.5,18.5L7.5,16.5L9,18L7,20L5.5,18.5Z"/>
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M18.5,5.5L16.5,7.5L15,6L17,4L18.5,5.5Z"/>
+</vector>

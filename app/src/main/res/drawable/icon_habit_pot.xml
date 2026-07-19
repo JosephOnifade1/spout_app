@@ -1,0 +1,21 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24.0"
+    android:viewportHeight="24.0">
+    <!-- Pot Rim -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M5,13H19V15H5V13Z"/>
+    <!-- Pot Body -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M6.5,16H17.5L16,21H8L6.5,16Z"/>
+    <!-- Sprout in pot -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M11,7H13V13H11V7Z"/>
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M12,10C12,10 14,9 15,10.5C16,12 14.5,13 13.5,13C12.5,13 12,11.5 12,11V10Z"/>
+</vector>

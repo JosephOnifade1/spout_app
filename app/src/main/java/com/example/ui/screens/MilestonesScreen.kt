@@ -60,13 +60,7 @@ fun MilestonesScreen(
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        bottomBar = {
-            BottomNavBar(
-                currentRoute = "milestones",
-                onNavigate = { route -> onNavigateToTab(route) }
-            )
-        }
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
             modifier = Modifier

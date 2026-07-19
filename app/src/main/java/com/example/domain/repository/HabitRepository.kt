@@ -18,6 +18,7 @@ interface HabitRepository {
     suspend fun saveMilestone(milestone: Milestone)
 
     fun getSubscriptionTier(): Flow<String>
+    fun getUserDisplayName(): Flow<String>
     suspend fun updateSubscriptionTier(tier: String)
     suspend fun syncSubscriptionStatus()
     fun onUserChanged(userId: String?)

@@ -9,6 +9,9 @@ import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Schedule
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,6 +28,8 @@ fun NotificationTimesScreen(
     onBack: () -> Unit,
     onUpdateTime: (Habit, String) -> Unit
 ) {
+    var activeEditingHabit by remember { mutableStateOf<Habit?>(null) }
+
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
@@ -59,7 +64,7 @@ fun NotificationTimesScreen(
                 items(habits) { habit ->
                     NotificationTimeRow(
                         habit = habit,
-                        onTimeClick = { /* In a real app, show TimePickerDialog */ }
+                        onTimeClick = { activeEditingHabit = habit }
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 24.dp),
@@ -69,6 +74,98 @@ fun NotificationTimesScreen(
             }
         }
     }
+
+    activeEditingHabit?.let { habit ->
+        TimeSelectionDialog(
+            initialTime = habit.reminderTime,
+            onDismiss = { activeEditingHabit = null },
+            onConfirm = { selected ->
+                onUpdateTime(habit, selected)
+                activeEditingHabit = null
+            }
+        )
+    }
+}
+
+@Composable
+private fun TimeSelectionDialog(
+    initialTime: String,
+    onDismiss: () -> Unit,
+    onConfirm: (String) -> Unit
+) {
+    val parts = initialTime.split(" ", ":")
+    var hour by remember { mutableStateOf(parts.getOrNull(0)?.toIntOrNull() ?: 7) }
+    var minute by remember { mutableStateOf(parts.getOrNull(1)?.toIntOrNull() ?: 30) }
+    var amPm by remember { mutableStateOf(parts.getOrNull(2) ?: "PM") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Select Reminder Time") },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        IconButton(onClick = { hour = if (hour == 12) 1 else hour + 1 }) {
+                            Text("▲", color = MaterialTheme.colorScheme.primary)
+                        }
+                        Text(
+                            text = hour.toString().padStart(2, '0'),
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        IconButton(onClick = { hour = if (hour == 1) 12 else hour - 1 }) {
+                            Text("▼", color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                    Text(":", style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.Bold)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        IconButton(onClick = { minute = (minute + 5) % 60 }) {
+                            Text("▲", color = MaterialTheme.colorScheme.primary)
+                        }
+                        Text(
+                            text = minute.toString().padStart(2, '0'),
+                            style = MaterialTheme.typography.headlineLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                        IconButton(onClick = { minute = if (minute == 0) 55 else (minute - 5 + 60) % 60 }) {
+                            Text("▼", color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Button(
+                            onClick = { amPm = if (amPm == "AM") "PM" else "AM" },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                contentColor = MaterialTheme.colorScheme.primary
+                            )
+                        ) {
+                            Text(amPm)
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = {
+                val formattedTime = String.format("%02d:%02d %s", hour, minute, amPm)
+                onConfirm(formattedTime)
+            }) {
+                Text("OK", fontWeight = FontWeight.Bold)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @Composable

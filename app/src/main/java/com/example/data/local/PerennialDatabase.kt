@@ -12,6 +12,12 @@ interface HabitDao {
     @Query("SELECT * FROM habits ORDER BY sortOrder ASC")
     fun getAllHabits(): Flow<List<Habit>>
 
+    @Query("SELECT * FROM habits")
+    suspend fun getAllHabitsList(): List<Habit>
+
+    @Query("SELECT * FROM habits WHERE habitId = :habitId")
+    suspend fun getHabitById(habitId: String): Habit?
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertHabit(habit: Habit)
 

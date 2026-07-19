@@ -21,5 +21,17 @@ class ThemeViewModel(application: Application) : AndroidViewModel(application) {
     fun setDarkTheme(isDark: Boolean) {
         _isDarkTheme.value = isDark
         sharedPrefs.edit().putBoolean("dark_mode", isDark).apply()
+        
+        try {
+            val currentUser = com.google.firebase.auth.FirebaseAuth.getInstance().currentUser
+            if (currentUser != null) {
+                val db = com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                val themeStr = if (isDark) "Dark (Ink Teal)" else "Light (Sage)"
+                db.collection("users").document(currentUser.uid)
+                    .update("theme", themeStr)
+            }
+        } catch (e: Exception) {
+            // Fail silently if Firebase is not initialized or offline
+        }
     }
 }

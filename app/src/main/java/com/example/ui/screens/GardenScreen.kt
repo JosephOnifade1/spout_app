@@ -132,13 +132,7 @@ fun GardenScreen(
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        bottomBar = {
-            BottomNavBar(
-                currentRoute = "garden",
-                onNavigate = onNavigateToTab
-            )
-        }
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         LazyColumn(
             state = lazyListState,

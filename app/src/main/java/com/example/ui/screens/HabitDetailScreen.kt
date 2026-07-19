@@ -94,7 +94,6 @@ fun HabitDetailScreen(
             // Derive statuses for last 7 days according to new rules
             val statuses = remember(habit, recentCheckIns) {
                 val today = LocalDate.now()
-                val createdAt = Instant.ofEpochMilli(habit.createdAt).atZone(ZoneId.systemDefault()).toLocalDate()
                 
                 (0..6).reversed().map { dayOffset ->
                     val date = today.minusDays(dayOffset.toLong())
@@ -102,7 +101,6 @@ fun HabitDetailScreen(
                     val checkIn = recentCheckIns.find { it.date == dateStr }
                     
                     when {
-                        date.isBefore(createdAt) -> GrowthStatus.BLANK
                         !isScheduled(habit, date) -> GrowthStatus.UNSCHEDULED
                         checkIn == null -> GrowthStatus.RESTING
                         else -> {

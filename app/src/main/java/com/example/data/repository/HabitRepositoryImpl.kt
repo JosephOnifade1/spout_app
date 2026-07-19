@@ -34,15 +34,15 @@ import android.app.Activity
 import com.google.firebase.firestore.ListenerRegistration
 import com.revenuecat.purchases.interfaces.LogInCallback
 
-class HabitRepositoryImpl(private val habitDao: com.example.data.local.HabitDao) : HabitRepository {
+class HabitRepositoryImpl(
+    private val habitDao: com.example.data.local.HabitDao,
+    private val context: Context
+) : HabitRepository {
     private val subscriptionTier = MutableStateFlow("free")
+    private val userDisplayName = MutableStateFlow("Friend")
     private var userSnapshotListener: ListenerRegistration? = null
 
-    private val db = try {
-        FirebaseFirestore.getInstance()
-    } catch (e: Exception) {
-        null
-    }
+    private val db = FirebaseFirestore.getInstance()
 
     override fun onUserChanged(userId: String?) {
         userSnapshotListener?.remove()
@@ -70,15 +70,19 @@ class HabitRepositoryImpl(private val habitDao: com.example.data.local.HabitDao)
             }
 
             // Firestore observer
-            try {
-                userSnapshotListener = db?.collection("users")?.document(userId)?.addSnapshotListener { snapshot, error ->
-                    if (error == null && snapshot != null && snapshot.exists()) {
-                        val tier = snapshot.getString("subscriptionTier") ?: "free"
-                        subscriptionTier.value = tier
-                    }
+            userSnapshotListener = db.collection("users").document(userId).addSnapshotListener { snapshot, error ->
+                if (error == null && snapshot != null && snapshot.exists()) {
+                    val tier = snapshot.getString("subscriptionTier") ?: "free"
+                    subscriptionTier.value = tier
+
+                    val nameFromFirestore = snapshot.getString("display_name") ?: snapshot.getString("displayName")
+                    val auth = FirebaseAuth.getInstance()
+                    val fallbackName = auth.currentUser?.displayName
+                    userDisplayName.value = nameFromFirestore ?: fallbackName ?: "Friend"
+                } else {
+                    val auth = FirebaseAuth.getInstance()
+                    userDisplayName.value = auth.currentUser?.displayName ?: "Friend"
                 }
-            } catch (e: Exception) {
-                // Fail silently
             }
         } else {
             // RevenueCat logout
@@ -90,6 +94,7 @@ class HabitRepositoryImpl(private val habitDao: com.example.data.local.HabitDao)
                 }
             }
             subscriptionTier.value = "free"
+            userDisplayName.value = "Friend"
         }
     }
 
@@ -100,16 +105,23 @@ class HabitRepositoryImpl(private val habitDao: com.example.data.local.HabitDao)
         "Incredible dedication."
     )
 
-    override fun getHabits(): Flow<List<Habit>> = habitDao.getAllHabits()
+    override fun getHabits(): Flow<List<Habit>> {
+        val auth = FirebaseAuth.getInstance()
+        val userId = auth.currentUser?.uid ?: "local_user"
+        return habitDao.getAllHabits().map { list ->
+            list.filter { it.userId == userId }
+        }
+    }
 
     override fun getSubscriptionTier(): Flow<String> = subscriptionTier
+    override fun getUserDisplayName(): Flow<String> = userDisplayName
 
     override suspend fun updateSubscriptionTier(tier: String) {
         subscriptionTier.value = tier.lowercase()
-        val auth = try { FirebaseAuth.getInstance() } catch (e: Exception) { null }
-        val userId = auth?.currentUser?.uid ?: "local_user"
+        val auth = FirebaseAuth.getInstance()
+        val userId = auth.currentUser?.uid ?: "local_user"
         if (userId != "local_user") {
-            db?.collection("users")?.document(userId)?.update("subscriptionTier", tier.lowercase())
+            db.collection("users").document(userId).update("subscriptionTier", tier.lowercase())
         }
     }
 
@@ -181,11 +193,11 @@ class HabitRepositoryImpl(private val habitDao: com.example.data.local.HabitDao)
         val tier = if (hasPlus) "plus" else "free"
         subscriptionTier.value = tier
         
-        val auth = try { FirebaseAuth.getInstance() } catch (e: Exception) { null }
-        val userId = auth?.currentUser?.uid ?: "local_user"
+        val auth = FirebaseAuth.getInstance()
+        val userId = auth.currentUser?.uid ?: "local_user"
         if (userId != "local_user") {
-            db?.collection("users")?.document(userId)?.update("subscriptionTier", tier)
-                ?.addOnFailureListener {
+            db.collection("users").document(userId).update("subscriptionTier", tier)
+                .addOnFailureListener {
                     db.collection("users").document(userId).set(mapOf("subscriptionTier" to tier))
                 }
         }
@@ -295,13 +307,13 @@ class HabitRepositoryImpl(private val habitDao: com.example.data.local.HabitDao)
         val todayStr = today.toString()
         
         val existingCheckIn = checkInsList.find { it.habitId == habitId && it.date == todayStr }
-        val auth = try { FirebaseAuth.getInstance() } catch (e: Exception) { null }
-        val userId = auth?.currentUser?.uid ?: "local_user"
+        val auth = FirebaseAuth.getInstance()
+        val userId = auth.currentUser?.uid ?: "local_user"
         
         if (existingCheckIn != null) {
             // UNDO
             habitDao.deleteCheckIn(existingCheckIn)
-            db?.collection("check_ins")?.document(existingCheckIn.checkInId)?.delete()
+            db.collection("check_ins").document(existingCheckIn.checkInId).delete()
             
             val remainingCheckIns = checkInsList.filter { it != existingCheckIn }
             val lastCheckIn = remainingCheckIns
@@ -317,7 +329,7 @@ class HabitRepositoryImpl(private val habitDao: com.example.data.local.HabitDao)
             
             val updatedHabit = habit.copy(currentStreak = newCurrentStreak)
             habitDao.insertHabit(updatedHabit)
-            db?.collection("habits")?.document(habitId)?.set(updatedHabit)
+            db.collection("habits").document(habitId).set(updatedHabit)
             
             return null
         } else {
@@ -332,7 +344,7 @@ class HabitRepositoryImpl(private val habitDao: com.example.data.local.HabitDao)
                 status = status
             )
             habitDao.insertCheckIn(newCheckIn)
-            db?.collection("check_ins")?.document(newCheckIn.checkInId)?.set(newCheckIn)
+            db.collection("check_ins").document(newCheckIn.checkInId).set(newCheckIn)
             
             val newLongestStreak = maxOf(habit.longestStreak, newStreak)
             val updatedHabit = habit.copy(
@@ -340,7 +352,7 @@ class HabitRepositoryImpl(private val habitDao: com.example.data.local.HabitDao)
                 longestStreak = newLongestStreak
             )
             habitDao.insertHabit(updatedHabit)
-            db?.collection("habits")?.document(habitId)?.set(updatedHabit)
+            db.collection("habits").document(habitId).set(updatedHabit)
             
             if (newStreak in listOf(7, 30, 100)) {
                 val milestone = Milestone(
@@ -359,47 +371,151 @@ class HabitRepositoryImpl(private val habitDao: com.example.data.local.HabitDao)
     }
 
     override suspend fun saveHabit(habit: Habit) {
-        val auth = try { FirebaseAuth.getInstance() } catch (e: Exception) { null }
-        val userId = auth?.currentUser?.uid ?: "local_user"
+        val auth = FirebaseAuth.getInstance()
+        val userId = auth.currentUser?.uid ?: "local_user"
         val habitToSave = habit.copy(userId = userId)
         habitDao.insertHabit(habitToSave)
-        db?.collection("habits")?.document(habitToSave.habitId)?.set(habitToSave)
+        db.collection("habits").document(habitToSave.habitId).set(habitToSave)
+        try {
+            com.example.notifications.ReminderScheduler.scheduleReminder(context, habitToSave)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     override suspend fun initializeDefaultHabits() {
-        val habitsList = habitDao.getAllHabits().first()
-        if (habitsList.isEmpty()) {
-            val auth = try { FirebaseAuth.getInstance() } catch (e: Exception) { null }
-            val userId = auth?.currentUser?.uid ?: "local_user"
-            
-            val defaultHabits = listOf(
-                Habit(
-                    habitId = UUID.randomUUID().toString(),
-                    userId = userId,
-                    title = "Drink Water", targetText = "6 glasses",
-                    iconKey = "water",
-                    colorTag = "moss",
-                    sortOrder = 0
-                ),
-                Habit(
-                    habitId = UUID.randomUUID().toString(),
-                    userId = userId,
-                    title = "Read 20 Minutes",
-                    iconKey = "read",
-                    colorTag = "dustyClay",
-                    sortOrder = 1
-                ),
-                Habit(
-                    habitId = UUID.randomUUID().toString(),
-                    userId = userId,
-                    title = "Meditate", targetText = "10 min",
-                    iconKey = "meditate",
-                    colorTag = "inkTeal",
-                    sortOrder = 2
-                )
+        val auth = FirebaseAuth.getInstance()
+        val userId = auth.currentUser?.uid ?: return
+
+        // 1. Check if user document exists in Firestore
+        val userDocRef = db.collection("users").document(userId)
+        val userDoc = suspendCoroutine { continuation ->
+            userDocRef.get().addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    continuation.resume(task.result)
+                } else {
+                    continuation.resume(null)
+                }
+            }
+        }
+
+        if (userDoc == null || !userDoc.exists()) {
+            // First time sign-in: create user doc in Firestore
+            val sharedPrefs = context.getSharedPreferences("perennial_settings", Context.MODE_PRIVATE)
+            val savedReminderStyle = sharedPrefs.getString("reminder_style", "Voice") ?: "Voice"
+            val isDark = sharedPrefs.getBoolean("dark_mode", false)
+            val themeStr = if (isDark) "Dark (Ink Teal)" else "Light (Sage)"
+
+            val initialUserData = mapOf(
+                "uid" to userId,
+                "display_name" to (auth.currentUser?.displayName ?: "Friend"),
+                "displayName" to (auth.currentUser?.displayName ?: "Friend"),
+                "email" to (auth.currentUser?.email ?: ""),
+                "reminder_style" to savedReminderStyle,
+                "reminderStyle" to savedReminderStyle,
+                "theme" to themeStr,
+                "subscription_tier" to "free",
+                "subscriptionTier" to "free",
+                "created_at" to System.currentTimeMillis(),
+                "createdAt" to System.currentTimeMillis()
             )
-            for (habit in defaultHabits) {
-                habitDao.insertHabit(habit)
+            suspendCoroutine { continuation ->
+                userDocRef.set(initialUserData).addOnCompleteListener {
+                    continuation.resume(Unit)
+                }
+            }
+
+            // Seed the 3 default habits if none exist locally
+            val localHabits = habitDao.getAllHabits().first()
+            if (localHabits.isEmpty()) {
+                val defaultHabits = listOf(
+                    Habit(
+                        habitId = UUID.randomUUID().toString(),
+                        userId = userId,
+                        title = "Drink Water", targetText = "6 glasses",
+                        iconKey = "water",
+                        colorTag = "moss",
+                        sortOrder = 0
+                    ),
+                    Habit(
+                        habitId = UUID.randomUUID().toString(),
+                        userId = userId,
+                        title = "Read 20 Minutes",
+                        iconKey = "read",
+                        colorTag = "dustyClay",
+                        sortOrder = 1
+                    ),
+                    Habit(
+                        habitId = UUID.randomUUID().toString(),
+                        userId = userId,
+                        title = "Meditate", targetText = "10 min",
+                        iconKey = "meditate",
+                        colorTag = "inkTeal",
+                        sortOrder = 2
+                    )
+                )
+                for (habit in defaultHabits) {
+                    habitDao.insertHabit(habit)
+                    db.collection("habits").document(habit.habitId).set(habit)
+                }
+            }
+        } else {
+            // Returning user: Load existing data from Firestore to local Room
+            // A. Sync habits
+            val habitsTask = suspendCoroutine { continuation ->
+                db.collection("habits").whereEqualTo("userId", userId).get().addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        continuation.resume(task.result)
+                    } else {
+                        continuation.resume(null)
+                    }
+                }
+            }
+            if (habitsTask != null) {
+                for (doc in habitsTask.documents) {
+                    val habit = doc.toObject(Habit::class.java)
+                    if (habit != null) {
+                        habitDao.insertHabit(habit)
+                    }
+                }
+            }
+
+            // B. Sync check-ins
+            val checkInsTask = suspendCoroutine { continuation ->
+                db.collection("check_ins").whereEqualTo("userId", userId).get().addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        continuation.resume(task.result)
+                    } else {
+                        continuation.resume(null)
+                    }
+                }
+            }
+            if (checkInsTask != null) {
+                for (doc in checkInsTask.documents) {
+                    val checkIn = doc.toObject(CheckIn::class.java)
+                    if (checkIn != null) {
+                        habitDao.insertCheckIn(checkIn)
+                    }
+                }
+            }
+
+            // C. Sync milestones
+            val milestonesTask = suspendCoroutine { continuation ->
+                db.collection("milestones").whereEqualTo("userId", userId).get().addOnCompleteListener { task ->
+                    if (task.isSuccessful) {
+                        continuation.resume(task.result)
+                    } else {
+                        continuation.resume(null)
+                    }
+                }
+            }
+            if (milestonesTask != null) {
+                for (doc in milestonesTask.documents) {
+                    val milestone = doc.toObject(Milestone::class.java)
+                    if (milestone != null) {
+                        habitDao.insertMilestone(milestone)
+                    }
+                }
             }
         }
     }
@@ -411,15 +527,17 @@ class HabitRepositoryImpl(private val habitDao: com.example.data.local.HabitDao)
             if (index != -1) {
                 val updated = habit.copy(sortOrder = index)
                 habitDao.insertHabit(updated)
-                db?.collection("habits")?.document(habit.habitId)?.update("sortOrder", index)
+                db.collection("habits").document(habit.habitId).update("sortOrder", index)
             }
         }
     }
 
     override fun getWeeklyCheckIns(days: Int): Flow<List<CheckIn>> = habitDao.getAllCheckIns().map { list ->
+        val auth = FirebaseAuth.getInstance()
+        val userId = auth.currentUser?.uid ?: "local_user"
         val cutoffDate = LocalDate.now().minusDays(days.toLong())
         list.filter { checkIn ->
-            try {
+            checkIn.userId == userId && try {
                 val checkInDate = LocalDate.parse(checkIn.date)
                 checkInDate.isAfter(cutoffDate) || checkInDate.isEqual(cutoffDate)
             } catch (e: Exception) {
@@ -428,11 +546,17 @@ class HabitRepositoryImpl(private val habitDao: com.example.data.local.HabitDao)
         }
     }
 
-    override fun getMilestones(): Flow<List<Milestone>> = habitDao.getAllMilestones()
+    override fun getMilestones(): Flow<List<Milestone>> {
+        val auth = FirebaseAuth.getInstance()
+        val userId = auth.currentUser?.uid ?: "local_user"
+        return habitDao.getAllMilestones().map { list ->
+            list.filter { it.userId == userId }
+        }
+    }
 
     override suspend fun saveMilestone(milestone: Milestone) {
         habitDao.insertMilestone(milestone)
-        db?.collection("milestones")?.add(milestone)
+        db.collection("milestones").document(milestone.milestoneId).set(milestone)
     }
 
     override suspend fun deleteHabitPermanently(habitId: String) {
@@ -440,13 +564,19 @@ class HabitRepositoryImpl(private val habitDao: com.example.data.local.HabitDao)
         habitDao.deleteMilestonesByHabitId(habitId)
         // Note: we'd need a DAO method to delete checkins by habitId if we want to be thorough
         
-        db?.collection("habits")?.document(habitId)?.delete()
-        db?.collection("check_ins")?.whereEqualTo("habitId", habitId)?.get()?.addOnSuccessListener { result ->
+        try {
+            com.example.notifications.ReminderScheduler.cancelReminder(context, habitId)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        
+        db.collection("habits").document(habitId).delete()
+        db.collection("check_ins").whereEqualTo("habitId", habitId).get().addOnSuccessListener { result ->
             for (document in result) {
                 document.reference.delete()
             }
         }
-        db?.collection("milestones")?.whereEqualTo("habitId", habitId)?.get()?.addOnSuccessListener { result ->
+        db.collection("milestones").whereEqualTo("habitId", habitId).get().addOnSuccessListener { result ->
             for (document in result) {
                 document.reference.delete()
             }

@@ -4,20 +4,24 @@ import com.example.R
 
 object AppIcons {
     // Growth Stages
-    val GrowthSeed = R.drawable.ic_status_seed
+    val GrowthSeed = R.drawable.icon_growth_seed
     val GrowthSeedFilled = R.drawable.icon_growth_seed_filled
-    val GrowthLeaf = R.drawable.ic_status_sprout
+    val GrowthLeaf = R.drawable.icon_growth_sprout
     val GrowthLeafFilled = R.drawable.icon_growth_sprout_filled
-    val GrowthBud = R.drawable.ic_status_bud
-    val GrowthBloom = R.drawable.ic_status_bloom
+    val GrowthBud = R.drawable.icon_growth_bud
+    val GrowthBloom = R.drawable.icon_growth_bloom
     val GrowthBloomFilled = R.drawable.icon_growth_bloom_filled
-    val GrowthResting = R.drawable.ic_status_resting
+    val GrowthResting = R.drawable.icon_growth_resting
 
     // Habits
     val HabitWater = R.drawable.icon_habit_water
     val HabitRead = R.drawable.icon_habit_read
     val HabitExercise = R.drawable.icon_habit_exercise
     val HabitMeditate = R.drawable.icon_habit_meditate
+    val HabitSprout = R.drawable.icon_habit_sprout
+    val HabitPot = R.drawable.icon_habit_pot
+    val HabitBud = R.drawable.icon_habit_bud
+    val HabitSun = R.drawable.icon_habit_sun
 
     // Navigation
     val NavToday = R.drawable.icon_nav_today
