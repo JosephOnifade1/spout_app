@@ -85,6 +85,8 @@ fun PerennialApp(themeViewModel: ThemeViewModel) {
     milestoneToCelebrate?.let { milestone ->
         MilestoneModal(
             streak = milestone.tier,
+            habitTitle = milestone.habitTitle.ifBlank { null },
+            encouragement = milestone.encouragementLine.ifBlank { null },
             onShare = { 
                 navController.navigate("share/${milestone.habitId}")
                 milestoneToCelebrate = null
