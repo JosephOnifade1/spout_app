@@ -88,22 +88,49 @@ jobs:
           set -o pipefail
           ./gradlew :app:recordRoborazziDebug --stacktrace 2>&1 | tee /tmp/record.log
 
-      # Failure logs are otherwise invisible to the agent working on this repo
-      # (the log host is not reachable from its sandbox), so push the tail back as
-      # a commit comment where it can be read through the API.
+      # Failure logs are otherwise invisible to the agent working on this repo (the
+      # actions log host is unreachable from its sandbox), so push a filtered extract
+      # back as a commit comment where it can be read through the API.
       - name: Report failure detail
         if: failure()
         env:
           GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
         run: |
           log=/tmp/record.log
           [ -f "$log" ] || log=/tmp/assemble.log
-          if [ -f "$log" ]; then
-            tail -c 5500 "$log" > /tmp/tail.txt
-            gh api -X POST "repos/${{ github.repository }}/commits/${{ github.sha }}/comments" \
-              -f body="$(printf 'CI failure log tail (`%s`):\n\n```\n%s\n```' "$GITHUB_WORKFLOW" "$(cat /tmp/tail.txt)")" > /dev/null \
-              && echo "posted failure tail as a commit comment"
-          fi
+          [ -f "$log" ] || exit 0
+          {
+            echo "CI failure extract for $SHA"
+            echo
+            echo "**Compile errors**"
+            echo '```'
+            grep -E "^e: |> Task .*FAILED|FAILURE:|Execution failed for task" "$log" | head -40
+            echo '```'
+            echo "**What went wrong**"
+            echo '```'
+            sed -n '/What went wrong/,+30p' "$log"
+            echo '```'
+            echo "**Test / Robolectric signals**"
+            echo '```'
+            grep -E "FAILED|Exception|Caused by|roborazzi|Robolectric|tests? completed" "$log" | head -40
+            echo '```'
+          } > /tmp/report.md
+          python3 -c "import json;print(json.dumps({'body': open('/tmp/report.md').read()[:6000]}))" > /tmp/payload.json
+          gh api -X POST "repos/$REPO/commits/$SHA/comments" --input /tmp/payload.json > /dev/null \
+            && echo "posted failure extract as a commit comment"
+
+      - name: Upload full gradle log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-log
+          path: |
+            /tmp/assemble.log
+            /tmp/record.log
+          if-no-files-found: warn
+          retention-days: 14
 
       - name: Upload APK
         if: always()
