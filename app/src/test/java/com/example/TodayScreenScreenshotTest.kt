@@ -65,7 +65,8 @@ class TodayScreenScreenshotTest {
             onHabitClick = {},
             onCheckIn = {},
             onNotificationsClick = {},
-            onNavigateToTab = {}
+            onNavigateToTab = {},
+            hourProvider = { 9 }
           )
         }
       }

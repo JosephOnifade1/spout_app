@@ -45,7 +45,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -59,9 +58,8 @@ import com.example.ui.components.PlantFraming
 import com.example.ui.components.PlantPortrait
 import com.example.ui.components.PlantStage
 import com.example.ui.theme.AppIcons
-import com.example.ui.theme.CreamDeep
-import com.example.ui.theme.CreamWarm
 import com.example.ui.theme.InkMuted
+import com.example.ui.theme.PaperCream
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -79,14 +77,17 @@ fun TodayScreen(
     onHabitClick: (String) -> Unit,
     onCheckIn: (Habit) -> Unit,
     onNotificationsClick: () -> Unit,
-    onNavigateToTab: (String) -> Unit
+    onNavigateToTab: (String) -> Unit,
+    // Injectable so screenshot tests are deterministic; the greeting otherwise changes
+    // with the wall clock and every CI run would produce a different image.
+    hourProvider: () -> Int = { LocalTime.now().hour }
 ) {
     val today = LocalDate.now().toString()
     val sortedHabits = remember(habits) {
         habits.filter { !it.archived }.sortedBy { it.sortOrder }
     }
 
-    var greeting by remember { mutableStateOf(greetingFor(LocalTime.now().hour)) }
+    var greeting by remember { mutableStateOf(greetingFor(hourProvider())) }
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
 
     // The greeting is recomputed on resume so it doesn't say "Good morning" at 9pm if the app
@@ -94,7 +95,7 @@ fun TodayScreen(
     DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
-                greeting = greetingFor(LocalTime.now().hour)
+                greeting = greetingFor(hourProvider())
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -227,7 +228,9 @@ private fun GardenStrip(habits: List<Habit>) {
             .padding(horizontal = 24.dp)
             .height(112.dp)
             .clip(RoundedCornerShape(18.dp))
-            .background(Brush.verticalGradient(listOf(CreamWarm, CreamDeep)))
+            // Exactly the paper the plants are painted on (#F6F2E6): any tint here shows up
+            // as a lighter square around every illustration.
+            .background(PaperCream)
     ) {
         Text(
             text = "YOUR GARDEN",
@@ -293,12 +296,21 @@ fun HabitCard(habit: Habit, isCheckedIn: Boolean, onClick: () -> Unit, onCheckIn
             modifier = Modifier.padding(start = 10.dp, end = 12.dp, top = 10.dp, bottom = 10.dp).fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            PlantPortrait(
-                stage = stage,
-                size = 58.dp,
-                framing = PlantFraming.CARD,
-                modifier = Modifier.scale(plantScale)
-            )
+            // The art is opaque cream; on a tinted (checked) card an unclipped square reads as
+            // a rendering bug. A rounded cream window makes it deliberate.
+            Box(
+                modifier = Modifier
+                    .size(58.dp)
+                    .clip(RoundedCornerShape(15.dp))
+                    .background(PaperCream)
+            ) {
+                PlantPortrait(
+                    stage = stage,
+                    size = 58.dp,
+                    framing = PlantFraming.CARD,
+                    modifier = Modifier.scale(plantScale)
+                )
+            }
 
             Spacer(Modifier.width(10.dp))
 
