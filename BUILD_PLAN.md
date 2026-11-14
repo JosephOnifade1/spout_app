@@ -109,11 +109,11 @@ The screen users see 30× a day. This is where the money is.
 **Acceptance:** tap-checking a habit moves something, makes a sound in the hand, and the list
 reorders smoothly. Offline. Animator-scale 0 → everything still lands correctly.
 
-### Phase 3 — Habit detail · 1 d
+### Phase 3 — Habit detail · 1 d · ✅ done (PR #5)
 Hero portrait 250 dp with `SharedTransitionLayout` from the card; growth bed (7 cells, real stage
 per day, unscheduled days distinct); streak roll-up counter; sticky action bar.
 
-### Phase 4 — Milestone celebration · 1 d
+### Phase 4 — Milestone celebration · 1 d · ✅ done (this PR)
 Full-bleed butter surface, breathing plant, `Canvas` petals seeded from soil, count-up number,
 `Share` primary. Skippable by tap, capped ~1.8 s, honours reduced-motion.
 
@@ -136,6 +136,8 @@ content descriptions), motion audit against the 12 ranked moments, dead-code cle
 |---|---|---|
 | 2026-11-14 | Fonts bundled, tokens, PlantPortrait, wrapper + CI | PR #3, `713dcf9` |
 | 2026-11-14 | Today rebuilt (strip, cards, empty state, animateItem, haptic) | `today_mixed.png`, `today_fresh.png`, `today_empty.png` |
+| 2026-11-14 | Habit Detail rebuilt (hero, streak roll-up, growth bed) | `habit_detail_bloom.png`, `habit_detail_bud.png` |
+| 2026-11-14 | Milestone celebration (petals, breathing plant, count-up) | `milestone_7.png`, `milestone_100.png` |
 
 **Note on art sources:** the untracked `design-source/` PNGs were lost to a sandbox
 rotation. The committed 1024px `plant_*_full.webp` files are now the source of truth —
