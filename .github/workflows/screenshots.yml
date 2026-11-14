@@ -22,6 +22,11 @@ jobs:
   screenshots:
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    env:
+      # ubuntu-latest images ship an Android SDK; using it avoids a third-party setup
+      # action that has been failing on this repo's CI.
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
 
     steps:
       - uses: actions/checkout@v4
@@ -32,14 +37,24 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Verify Android SDK
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls "$ANDROID_HOME" || { echo "::error::no Android SDK on runner"; exit 1; }
+          ls "$ANDROID_HOME/platforms" 2>/dev/null || true
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v3
 
       - name: Accept Android SDK licenses
-        run: yes | sdkmanager --licenses > /dev/null 2>&1 || true
+        run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          [ -x "$SDKMANAGER" ] || SDKMANAGER="$(command -v sdkmanager || true)"
+          if [ -n "$SDKMANAGER" ] && [ -x "$SDKMANAGER" ]; then
+            yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          else
+            echo "::warning::sdkmanager not found, skipping license step"
+          fi
 
       # Either of these missing fails the build: the secrets plugin reads .env,
       # and the debug build type points at a debug.keystore that is gitignored.
