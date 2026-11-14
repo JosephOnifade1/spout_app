@@ -132,7 +132,8 @@ fun MilestoneCelebration(
                 Text(
                     text = "MILESTONE",
                     style = MaterialTheme.typography.labelSmall,
-                    color = DustyClay
+                    // DustyClay on butter is ~2.3:1 — unreadable. Warm brown reads at ~6:1.
+                    color = SoilDeep
                 )
                 Spacer(Modifier.height(12.dp))
                 Text(
@@ -228,7 +229,9 @@ private fun MilestoneCount(streak: Int, enabled: Boolean) {
         text = value.toString(),
         style = PerennialTypography.HeadlineLarge.copy(fontSize = 92.sp, lineHeight = 100.sp),
         color = InkTeal,
-        textAlign = TextAlign.Center
+        textAlign = TextAlign.Center,
+        maxLines = 1,
+        softWrap = false
     )
 }
 
