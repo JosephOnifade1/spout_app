@@ -70,7 +70,7 @@ Roborazzi in CI, and the plugin is already present.
 
 Effort assumes focused sessions. Each phase ends with something you can look at.
 
-### Phase 0 — Make the build observable · 1–1.5 d
+### Phase 0 — Make the build observable · 1–1.5 d · ✅ done (PR #3)
 The whole plan is blind without this: I can't run Gradle here.
 
 | # | Task | Done when |
@@ -83,7 +83,7 @@ The whole plan is blind without this: I can't run Gradle here.
 **Risk:** 0.2 may surface latent compile errors that were never caught. That's a feature — you need
 them fixed before any of this ships. I'll fix them under this phase and report before proceeding.
 
-### Phase 1 — Foundations · 1.5 d
+### Phase 1 — Foundations · 1.5 d · ✅ done (PR #3)
 | # | Task | File |
 |---|---|---|
 | 1.1 | Semantic colour tokens: `PaperCream`, `CreamDeep`, `LeafDeep`, `BloomPink`, `InkSoft`, `InkMuted`, `SoilDeep` | `theme/Color.kt` |
@@ -94,7 +94,7 @@ them fixed before any of this ships. I'll fix them under this phase and report b
 | 1.6 | 5 × (`full` + `card`) WebP → `res/drawable-nodpi` | `res/` |
 | ~~1.7~~ | ~~Bundle fonts~~ **done** (`a49cee6`) — Fraunces/Public Sans/Plex Mono, 328 KB | — |
 
-### Phase 2 — Today · 1.5–2 d
+### Phase 2 — Today · 1.5–2 d · ✅ done (this PR)
 The screen users see 30× a day. This is where the money is.
 
 | # | Task |
@@ -127,6 +127,19 @@ content descriptions), motion audit against the 12 ranked moments, dead-code cle
 (`GrowthIcon.kt:23-27` dead `animateFloatAsState`, unreferenced 379 KB `add_habit_mockup_…jpg`).
 
 **Total ≈ 8–9 focused days.**
+
+---
+
+### Progress log
+
+| Date | What | Evidence |
+|---|---|---|
+| 2026-11-14 | Fonts bundled, tokens, PlantPortrait, wrapper + CI | PR #3, `713dcf9` |
+| 2026-11-14 | Today rebuilt (strip, cards, empty state, animateItem, haptic) | `today_mixed.png`, `today_fresh.png`, `today_empty.png` |
+
+**Note on art sources:** the untracked `design-source/` PNGs were lost to a sandbox
+rotation. The committed 1024px `plant_*_full.webp` files are now the source of truth —
+card crops are derived from them, so an asset change never needs the original PNGs.
 
 ---
 

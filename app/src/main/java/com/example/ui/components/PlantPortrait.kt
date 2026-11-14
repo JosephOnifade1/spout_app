@@ -11,6 +11,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
@@ -21,6 +22,17 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.R
+
+/**
+ * Whether idle/ambient motion should run.
+ *
+ * Two reasons this exists rather than being hard-wired:
+ *  1. Accessibility — the OS "remove animations" setting should silence the sway, not just
+ *     shorten transitions. Phase 6 wires this to the platform flag.
+ *  2. Tests — an infinite animation never lets Compose reach idle, so screenshot tests that
+ *     render a garden would hang. Tests provide `false`.
+ */
+val LocalPlantMotionEnabled = staticCompositionLocalOf { true }
 
 /**
  * The five stages a habit's plant can be in.
@@ -90,6 +102,8 @@ enum class PlantFraming { CARD, FULL }
  *
  * @param sway gentle ±1.6° idle rotation. Pass false in lists of more than ~4 plants, where
  *        many simultaneous infinite animations cost more than they're worth.
+ * @param swayPeriodMillis one half-cycle. Give neighbouring plants different values so they
+ *        don't sway in lockstep.
  */
 @Composable
 fun PlantPortrait(
@@ -99,18 +113,19 @@ fun PlantPortrait(
     framing: PlantFraming = PlantFraming.CARD,
     tag: PlantTag = PlantTag.MOSS,
     sway: Boolean = false,
+    swayPeriodMillis: Int = 2600,
     animated: Boolean = true,
     contentDescription: String? = null
 ) {
     val description = contentDescription ?: "Plant at ${stage.displayName.lowercase()} stage"
 
-    val swayAngle: Float = if (sway) {
+    val swayAngle: Float = if (sway && LocalPlantMotionEnabled.current) {
         val transition = rememberInfiniteTransition(label = "plantSway")
         val angle by transition.animateFloat(
             initialValue = -1.6f,
             targetValue = 1.6f,
             animationSpec = infiniteRepeatable(
-                animation = tween(durationMillis = 2600, easing = FastOutSlowInEasing),
+                animation = tween(durationMillis = swayPeriodMillis, easing = FastOutSlowInEasing),
                 repeatMode = RepeatMode.Reverse
             ),
             label = "plantSwayAngle"
