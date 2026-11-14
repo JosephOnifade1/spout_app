@@ -21,6 +21,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.data.Habit
+import com.example.ui.components.PlantTag
 import com.example.ui.theme.AppIcons
 import java.util.UUID
 
@@ -407,15 +408,5 @@ private fun TimeSelectionDialog(
     )
 }
 
-fun getColorFromString(name: String): Color {
-    return when (name.lowercase()) {
-        "moss" -> Color(0xFF5B7F5E)
-        "dustyclay" -> Color(0xFFC97B84)
-        "butter" -> Color(0xFFF0C868)
-        "soil" -> Color(0xFF8C7A6B)
-        "inkteal" -> Color(0xFF1B2E2B)
-        "charcoalink" -> Color(0xFF2B2B28)
-        "papersage" -> Color(0xFFEDF1EA)
-        else -> Color(0xFF5B7F5E)
-    }
-}
+/** Delegates to [PlantTag] so the picker and the habit cards can never disagree. */
+fun getColorFromString(name: String): Color = PlantTag.fromKey(name).accent

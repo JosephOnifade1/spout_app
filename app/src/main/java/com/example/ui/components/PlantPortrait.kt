@@ -19,9 +19,17 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.R
+import com.example.ui.theme.Butter
+import com.example.ui.theme.ButterDeep
+import com.example.ui.theme.CharcoalInk
+import com.example.ui.theme.DustyClay
+import com.example.ui.theme.InkTeal
+import com.example.ui.theme.Moss
+import com.example.ui.theme.Soil
 
 /**
  * Whether idle/ambient motion should run.
@@ -72,17 +80,43 @@ enum class PlantStage(
 }
 
 /**
- * Colour tags. Only MOSS has art generated so far (BUILD_PLAN D2) — the rest are generated in
- * Phase 5. The enum exists now so no call site hard-codes "moss" and nothing has to change when
- * the other art lands.
+ * Colour tags, keyed to the strings already persisted in `Habit.colorTag` — this is what the
+ * Add/Edit picker has been writing since the first build, and nothing ever read it back.
+ *
+ * The tag is rendered as an **accent** (ring, border, streak, stage chip), not by repainting the
+ * illustration. Two reasons: thirty near-identical plants in different palettes is a lot of art
+ * for very little distinction, and tinting a full-colour painting at runtime stains the soil and
+ * the paper along with the leaves. An accent is legible at 38dp and costs nothing.
+ * [accent] is the single source of truth for what a tag looks like.
  */
-enum class PlantTag(val key: String) {
-    MOSS("moss"),
-    CLAY("clay"),
-    BUTTER("butter"),
-    SOIL("soil"),
-    INK_TEAL("ink_teal"),
-    CHARCOAL("charcoal")
+enum class PlantTag(val key: String, val accent: Color) {
+    MOSS("moss", Moss),
+    CLAY("dustyClay", DustyClay),
+    BUTTER("butter", Butter),
+    SOIL("soil", Soil),
+    INK_TEAL("inkTeal", InkTeal),
+    CHARCOAL("charcoalInk", CharcoalInk);
+
+    /** Ink that reads on top of [accent] — butter is light enough to need dark text. */
+    val onAccent: Color
+        get() = if (this == BUTTER) InkTeal else Color.White
+
+    /**
+     * The accent, darkened where needed, for drawing *on paper* — glyphs, borders and small
+     * labels. Butter at #F0C868 is a fine fill and unreadable as text on cream.
+     */
+    val readableAccent: Color
+        get() = if (this == BUTTER) ButterDeep else accent
+
+    companion object {
+        /** Tolerant lookup: unknown, null or legacy values fall back to Moss rather than throw. */
+        fun fromKey(raw: String?): PlantTag {
+            val normalised = raw?.lowercase()?.filter { it.isLetterOrDigit() } ?: return MOSS
+            return entries.firstOrNull {
+                it.key.lowercase().filter { c -> c.isLetterOrDigit() } == normalised
+            } ?: MOSS
+        }
+    }
 }
 
 /**
@@ -147,7 +181,7 @@ fun PlantPortrait(
     if (animated) {
         Crossfade(targetState = stage, animationSpec = tween(600), label = "plantStage") { current ->
             Image(
-                painter = painterResource(id = drawableFor(current, framing)),
+                painter = painterResource(id = drawableFor(current, framing, tag)),
                 contentDescription = null,
                 modifier = imageModifier,
                 contentScale = ContentScale.Fit
@@ -155,7 +189,7 @@ fun PlantPortrait(
         }
     } else {
         Image(
-            painter = painterResource(id = drawableFor(stage, framing)),
+            painter = painterResource(id = drawableFor(stage, framing, tag)),
             contentDescription = null,
             modifier = imageModifier,
             contentScale = ContentScale.Fit
@@ -167,7 +201,9 @@ fun PlantPortrait(
  * Art is currently Moss-only. Adding a tag is a `when` branch plus five files in
  * res/drawable-nodpi — no call-site changes.
  */
-private fun drawableFor(stage: PlantStage, framing: PlantFraming): Int = when (stage) {
+/** Art is Moss-only for now; [tag] is threaded so per-tag sets become a one-line change. */
+@Suppress("UNUSED_PARAMETER")
+private fun drawableFor(stage: PlantStage, framing: PlantFraming, tag: PlantTag): Int = when (stage) {
     PlantStage.SEED -> if (framing == PlantFraming.CARD) R.drawable.plant_seed_card else R.drawable.plant_seed_full
     PlantStage.SPROUT -> if (framing == PlantFraming.CARD) R.drawable.plant_sprout_card else R.drawable.plant_sprout_full
     PlantStage.BUD -> if (framing == PlantFraming.CARD) R.drawable.plant_bud_card else R.drawable.plant_bud_full

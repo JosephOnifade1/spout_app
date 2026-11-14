@@ -57,6 +57,7 @@ import com.example.data.Habit
 import com.example.ui.components.PlantFraming
 import com.example.ui.components.PlantPortrait
 import com.example.ui.components.PlantStage
+import com.example.ui.components.PlantTag
 import com.example.ui.theme.AppIcons
 import com.example.ui.theme.InkMuted
 import com.example.ui.theme.PaperCream
@@ -268,6 +269,9 @@ private fun GardenStrip(habits: List<Habit>) {
 fun HabitCard(habit: Habit, isCheckedIn: Boolean, onClick: () -> Unit, onCheckIn: () -> Unit) {
     val haptic = LocalHapticFeedback.current
     val stage = PlantStage.fromStreak(habit.currentStreak)
+    // colourTag has been persisted since the first build and rendered nowhere; it now drives
+    // the ring, the border, the checked tint and the streak label.
+    val tag = PlantTag.fromKey(habit.colorTag)
 
     val plantScale by animateFloatAsState(
         targetValue = if (isCheckedIn) 1.06f else 1f,
@@ -279,14 +283,14 @@ fun HabitCard(habit: Habit, isCheckedIn: Boolean, onClick: () -> Unit, onCheckIn
         modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(18.dp)).clickable { onClick() },
         shape = RoundedCornerShape(18.dp),
         color = if (isCheckedIn) {
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+            tag.accent.copy(alpha = 0.10f)
         } else {
             MaterialTheme.colorScheme.surface
         },
         border = BorderStroke(
             1.dp,
             if (isCheckedIn) {
-                MaterialTheme.colorScheme.primary.copy(alpha = 0.30f)
+                tag.accent.copy(alpha = 0.32f)
             } else {
                 MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)
             }
@@ -318,11 +322,8 @@ fun HabitCard(habit: Habit, isCheckedIn: Boolean, onClick: () -> Unit, onCheckIn
                 Text(
                     text = habit.title,
                     style = MaterialTheme.typography.titleMedium,
-                    color = if (isCheckedIn) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    },
+                    // Always ink: butter-coloured body text on cream would be unreadable.
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -331,7 +332,7 @@ fun HabitCard(habit: Habit, isCheckedIn: Boolean, onClick: () -> Unit, onCheckIn
                     text = if (isCheckedIn) "Goal achieved!" else habitMeta(habit),
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (isCheckedIn) {
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.75f)
+                        tag.readableAccent
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant
                     },
@@ -348,11 +349,7 @@ fun HabitCard(habit: Habit, isCheckedIn: Boolean, onClick: () -> Unit, onCheckIn
                         .size(38.dp)
                         .clip(CircleShape)
                         .background(
-                            if (isCheckedIn) {
-                                MaterialTheme.colorScheme.primary
-                            } else {
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                            }
+                            if (isCheckedIn) tag.accent else tag.accent.copy(alpha = 0.14f)
                         )
                         .clickable {
                             // The single most repeated action in the app; it gets a haptic.
@@ -366,13 +363,13 @@ fun HabitCard(habit: Habit, isCheckedIn: Boolean, onClick: () -> Unit, onCheckIn
                             imageVector = Icons.Default.Check,
                             contentDescription = "Checked in",
                             modifier = Modifier.size(19.dp),
-                            tint = Color.White
+                            tint = tag.onAccent
                         )
                     } else {
                         Text(
                             text = "+",
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.primary
+                            color = tag.readableAccent
                         )
                     }
                 }
@@ -381,7 +378,7 @@ fun HabitCard(habit: Habit, isCheckedIn: Boolean, onClick: () -> Unit, onCheckIn
                     Text(
                         text = "${habit.currentStreak}d",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                        color = tag.readableAccent
                     )
                 }
             }

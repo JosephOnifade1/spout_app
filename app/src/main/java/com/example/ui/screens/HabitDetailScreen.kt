@@ -46,6 +46,7 @@ import com.example.ui.components.LocalPlantMotionEnabled
 import com.example.ui.components.PlantFraming
 import com.example.ui.components.PlantPortrait
 import com.example.ui.components.PlantStage
+import com.example.ui.components.PlantTag
 import com.example.ui.theme.InkMuted
 import com.example.ui.theme.PaperCream
 import com.example.ui.theme.PerennialTypography
@@ -70,6 +71,7 @@ fun HabitDetailScreen(
     today: LocalDate = LocalDate.now()
 ) {
     val stage = PlantStage.fromStreak(habit.currentStreak)
+    val tag = PlantTag.fromKey(habit.colorTag)
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -194,7 +196,7 @@ fun HabitDetailScreen(
                         color = InkMuted
                     )
                     Spacer(Modifier.height(6.dp))
-                    StageChip(stage)
+                    StageChip(stage = stage, tag = tag)
                 }
             }
 
@@ -235,22 +237,22 @@ private fun streakRollUp(streak: Int): String {
 }
 
 @Composable
-private fun StageChip(stage: PlantStage) {
+private fun StageChip(stage: PlantStage, tag: PlantTag) {
     Surface(
-        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f),
+        color = tag.accent.copy(alpha = 0.10f),
         shape = CircleShape,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.28f))
+        border = BorderStroke(1.dp, tag.accent.copy(alpha = 0.30f))
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            PlantPortrait(stage = stage, size = 18.dp, framing = PlantFraming.CARD)
+            PlantPortrait(stage = stage, size = 18.dp, framing = PlantFraming.CARD, tag = tag)
             Spacer(Modifier.width(7.dp))
             Text(
                 text = stage.displayName.uppercase(),
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary
+                color = tag.readableAccent
             )
         }
     }
