@@ -230,7 +230,8 @@ private fun streakRollUp(streak: Int): String {
         animationSpec = tween(durationMillis = 900),
         label = "streakRollUp"
     )
-    return value.toString().padStart(2, '0')
+    // No zero padding: "05 days" reads like a serial number, "5 days" reads like a sentence.
+    return value.toString()
 }
 
 @Composable
