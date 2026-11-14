@@ -1,0 +1,167 @@
+name: Build & screenshots
+
+# The only way to see real Compose output: there is no JDK or Android SDK in the
+# agent sandbox, so the app is built and rendered here and the PNGs come back as artifacts.
+#
+# Produces:
+#   build-output   — assembleDebug log + APK
+#   screenshots    — app/src/test/screenshots/*.png rendered by Roborazzi
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches: ['arena/**']
+
+permissions:
+  contents: write        # commit comments carry CI failure logs back to the agent
+  pull-requests: write
+
+concurrency:
+  group: screenshots-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      # ubuntu-latest images ship an Android SDK; using it avoids a third-party setup
+      # action that has been failing on this repo's CI.
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Verify Android SDK
+        run: |
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          ls "$ANDROID_HOME" || { echo "::error::no Android SDK on runner"; exit 1; }
+          ls "$ANDROID_HOME/platforms" 2>/dev/null || true
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Accept Android SDK licenses
+        run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          [ -x "$SDKMANAGER" ] || SDKMANAGER="$(command -v sdkmanager || true)"
+          if [ -n "$SDKMANAGER" ] && [ -x "$SDKMANAGER" ]; then
+            yes | "$SDKMANAGER" --licenses > /dev/null 2>&1 || true
+          else
+            echo "::warning::sdkmanager not found, skipping license step"
+          fi
+
+      # Either of these missing fails the build: the secrets plugin reads .env,
+      # and the debug build type points at a debug.keystore that is gitignored.
+      - name: Provide .env
+        run: |
+          if [ ! -f .env ] && [ -f .env.example ]; then cp .env.example .env; fi
+
+      - name: Generate debug keystore
+        run: |
+          if [ ! -f debug.keystore ]; then
+            keytool -genkeypair -v \
+              -keystore debug.keystore \
+              -storepass android -keypass android \
+              -alias androiddebugkey \
+              -keyalg RSA -keysize 2048 -validity 10000 \
+              -dname "CN=Android Debug,O=Android,C=US"
+          fi
+
+      - name: Assemble debug
+        run: |
+          set -o pipefail
+          ./gradlew :app:assembleDebug --stacktrace 2>&1 | tee /tmp/assemble.log
+
+      - name: Record Roborazzi screenshots
+        id: record
+        run: |
+          set -o pipefail
+          ./gradlew :app:recordRoborazziDebug --stacktrace 2>&1 | tee /tmp/record.log
+
+      # Failure logs are otherwise invisible to the agent working on this repo (the
+      # actions log host is unreachable from its sandbox), so push a filtered extract
+      # back as a commit comment where it can be read through the API.
+      - name: Report failure detail
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          SHA: ${{ github.sha }}
+        run: |
+          log=/tmp/record.log
+          [ -f "$log" ] || log=/tmp/assemble.log
+          [ -f "$log" ] || exit 0
+          {
+            echo "CI failure extract for $SHA"
+            echo
+            echo "**Compile errors**"
+            echo '```'
+            grep -E "^e: |> Task .*FAILED|FAILURE:|Execution failed for task" "$log" | head -40
+            echo '```'
+            echo "**What went wrong**"
+            echo '```'
+            sed -n '/What went wrong/,+30p' "$log"
+            echo '```'
+            echo "**Test / Robolectric signals**"
+            echo '```'
+            grep -E "FAILED|Exception|Caused by|roborazzi|Robolectric|tests? completed" "$log" | head -40
+            echo '```'
+          } > /tmp/report.md
+          python3 -c "import json;print(json.dumps({'body': open('/tmp/report.md').read()[:6000]}))" > /tmp/payload.json
+          gh api -X POST "repos/$REPO/commits/$SHA/comments" --input /tmp/payload.json > /dev/null \
+            && echo "posted failure extract as a commit comment"
+
+      - name: Upload full gradle log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gradle-log
+          path: |
+            /tmp/assemble.log
+            /tmp/record.log
+          if-no-files-found: warn
+          retention-days: 14
+
+      - name: Upload APK
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: app/build/outputs/apk/debug/*.apk
+          if-no-files-found: warn
+          retention-days: 14
+
+      # Roborazzi writes into app/src/test/screenshots. Committing them back means the
+      # rendered output is visible in the branch itself, not just inside a downloadable
+      # artifact — which is what makes it reviewable at all here.
+      - name: Commit screenshots back to branch
+        if: success() && github.event_name == 'push'
+        run: |
+          git config user.name "perennial-ci"
+          git config user.email "ci@users.noreply.github.com"
+          git add -f app/src/test/screenshots
+          if git diff --cached --quiet; then
+            echo "screenshots unchanged"
+            exit 0
+          fi
+          git commit -m "ci: rendered screenshots for ${GITHUB_SHA:0:7} [skip ci]"
+          git push
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: app/src/test/screenshots/**/*.png
+          if-no-files-found: warn
+          retention-days: 30

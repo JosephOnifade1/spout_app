@@ -15,7 +15,7 @@ import org.robolectric.annotation.Config
 import java.time.LocalDate
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [36])
+@Config()
 class ExampleRobolectricTest {
 
   @Test
