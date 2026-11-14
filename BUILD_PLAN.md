@@ -117,7 +117,7 @@ per day, unscheduled days distinct); streak roll-up counter; sticky action bar.
 Full-bleed butter surface, breathing plant, `Canvas` petals seeded from soil, count-up number,
 `Share` primary. Skippable by tap, capped ~1.8 s, honours reduced-motion.
 
-### Phase 5 — Supporting screens & the six tags · 1.5 d
+### Phase 5 — Supporting screens & the six tags · 1.5 d · ◐ tags done, screens pending
 Add/Edit (the worst offender per the audit: 143–215), Garden grid, Milestones list, Settings rows;
 generate the five remaining colour tags × 5 stages.
 
@@ -140,6 +140,22 @@ content descriptions), motion audit against the 12 ranked moments, dead-code cle
 **Note on art sources:** the untracked `design-source/` PNGs were lost to a sandbox
 rotation. The committed 1024px `plant_*_full.webp` files are now the source of truth —
 card crops are derived from them, so an asset change never needs the original PNGs.
+
+---
+
+### D2 revised — tags are accents, not thirty repainted plants
+
+Original plan said each of the six tags gets its own art set. Changed after building it:
+`Habit.colorTag` was already persisted and chosen in Add/Edit and read by nothing, so the
+cheapest correct fix is to *render* it. Thirty near-identical plants in different palettes buys
+little distinction, and runtime tinting stains the soil and paper along with the leaves.
+
+Tags now drive the ring, border, checked tint, streak label and stage chip. `PlantPortrait` still
+takes a `tag`, so per-tag art remains a drop-in later if it turns out to be wanted.
+
+**Palette defect found while rendering:** `inkTeal` (#1B2E2B) and `charcoalInk` (#2B2B28) are
+visually the same colour at a glance. Six tags, five distinguishable. Needs a decision — merge
+them, or re-point one to a genuinely different hue.
 
 ---
 
