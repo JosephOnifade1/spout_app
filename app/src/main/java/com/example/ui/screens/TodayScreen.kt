@@ -403,13 +403,24 @@ private fun EmptyGarden(modifier: Modifier = Modifier, onAddHabit: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        PlantPortrait(
-            stage = PlantStage.SEED,
-            size = 132.dp,
-            framing = PlantFraming.FULL,
-            sway = true
-        )
-        Spacer(Modifier.height(20.dp))
+        // Framed deliberately: the illustration is opaque cream, so a bare square against the
+        // sage background reads as a missing image. A rounded cream frame makes it a picture.
+        Surface(
+            color = PaperCream,
+            shape = RoundedCornerShape(26.dp),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.16f)),
+            modifier = Modifier.size(172.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                PlantPortrait(
+                    stage = PlantStage.SEED,
+                    size = 158.dp,
+                    framing = PlantFraming.CARD,
+                    sway = true
+                )
+            }
+        }
+        Spacer(Modifier.height(22.dp))
         Text(
             text = "Plant your first habit",
             style = MaterialTheme.typography.headlineMedium,
