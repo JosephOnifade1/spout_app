@@ -2,58 +2,68 @@ package com.example.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.googlefonts.Font
-import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.unit.sp
 import com.example.R
 
-private val provider = GoogleFont.Provider(
-    providerAuthority = "com.google.android.gms.fonts",
-    providerPackage = "com.google.android.gms",
-    certificates = R.array.com_google_android_gms_fonts_certs
-)
-
+/**
+ * Fonts are bundled in res/font (latin subset, ~242 KB total) instead of being pulled at
+ * runtime from the Google Fonts provider. The previous implementation depended on Google
+ * Play Services being present and on a network round-trip, so on a fresh install — or
+ * offline — every heading silently fell back to the system sans-serif.
+ */
 val FrauncesFontFamily = FontFamily(
-    Font(googleFont = GoogleFont("Fraunces"), fontProvider = provider)
+    Font(R.font.fraunces_400, FontWeight.Normal),
+    Font(R.font.fraunces_600, FontWeight.SemiBold),
+    Font(R.font.fraunces_700, FontWeight.Bold)
 )
 
 val PublicSansFontFamily = FontFamily(
-    Font(googleFont = GoogleFont("Public Sans"), fontProvider = provider)
+    Font(R.font.public_sans_400, FontWeight.Normal),
+    Font(R.font.public_sans_500, FontWeight.Medium),
+    Font(R.font.public_sans_600, FontWeight.SemiBold),
+    Font(R.font.public_sans_700, FontWeight.Bold)
 )
 
 val IbmPlexMonoFontFamily = FontFamily(
-    Font(googleFont = GoogleFont("IBM Plex Mono"), fontProvider = provider)
+    Font(R.font.ibm_plex_mono_400, FontWeight.Normal),
+    Font(R.font.ibm_plex_mono_500, FontWeight.Medium)
 )
 
 /**
  * PerennialTypography defines the core brand styles for the Perennial application.
  * It uses Fraunces for display and headings, and IBM Plex Mono for technical/numeric data.
+ *
+ * Display styles use SemiBold (600) rather than Bold: at 24-32sp a high-contrast serif
+ * reads as shouting at 700. A true 700 cut is still bundled so existing call sites that
+ * ask for FontWeight.Bold get real bold instead of a synthesised smear.
+ * Letter spacing is slightly negative on display sizes to close up Fraunces' sidebearings.
  */
 object PerennialTypography {
     val HeadlineLarge = TextStyle(
         fontFamily = FrauncesFontFamily,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 32.sp,
-        lineHeight = 40.sp,
-        letterSpacing = 0.sp
+        lineHeight = 38.sp,
+        letterSpacing = (-0.4).sp
     )
-    
+
     val HeadlineMedium = TextStyle(
         fontFamily = FrauncesFontFamily,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 28.sp,
-        lineHeight = 36.sp,
-        letterSpacing = 0.sp
+        lineHeight = 34.sp,
+        letterSpacing = (-0.3).sp
     )
-    
+
     val HeadlineSmall = TextStyle(
         fontFamily = FrauncesFontFamily,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.SemiBold,
         fontSize = 24.sp,
-        lineHeight = 32.sp,
-        letterSpacing = 0.sp
+        lineHeight = 30.sp,
+        letterSpacing = (-0.2).sp
     )
 
     val TitleLarge = TextStyle(
@@ -77,7 +87,7 @@ object PerennialTypography {
         fontWeight = FontWeight.Normal,
         fontSize = 16.sp,
         lineHeight = 24.sp,
-        letterSpacing = 0.5.sp
+        letterSpacing = 0.2.sp
     )
 
     val BodyMedium = TextStyle(
@@ -85,12 +95,12 @@ object PerennialTypography {
         fontWeight = FontWeight.Normal,
         fontSize = 14.sp,
         lineHeight = 20.sp,
-        letterSpacing = 0.25.sp
+        letterSpacing = 0.15.sp
     )
 
     val TechnicalMono = TextStyle(
         fontFamily = IbmPlexMonoFontFamily,
-        fontWeight = FontWeight.Bold,
+        fontWeight = FontWeight.Medium,
         fontSize = 16.sp,
         lineHeight = 24.sp,
         letterSpacing = 0.5.sp
@@ -126,7 +136,7 @@ val AppTypography = Typography(
         fontWeight = FontWeight.Medium,
         fontSize = 12.sp,
         lineHeight = 16.sp,
-        letterSpacing = 0.5.sp
+        letterSpacing = 0.3.sp
     ),
     labelSmall = PerennialTypography.LabelSmallMono
 )
