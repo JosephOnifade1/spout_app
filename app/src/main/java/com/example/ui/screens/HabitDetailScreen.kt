@@ -252,7 +252,7 @@ private fun StageChip(stage: PlantStage, tag: PlantTag) {
             Text(
                 text = stage.displayName.uppercase(),
                 style = MaterialTheme.typography.labelSmall,
-                color = tag.accent
+                color = tag.readableAccent
             )
         }
     }

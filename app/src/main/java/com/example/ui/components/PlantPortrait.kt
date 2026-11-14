@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.example.R
 import com.example.ui.theme.Butter
+import com.example.ui.theme.ButterDeep
 import com.example.ui.theme.CharcoalInk
 import com.example.ui.theme.DustyClay
 import com.example.ui.theme.InkTeal
@@ -99,6 +100,13 @@ enum class PlantTag(val key: String, val accent: Color) {
     /** Ink that reads on top of [accent] — butter is light enough to need dark text. */
     val onAccent: Color
         get() = if (this == BUTTER) InkTeal else Color.White
+
+    /**
+     * The accent, darkened where needed, for drawing *on paper* — glyphs, borders and small
+     * labels. Butter at #F0C868 is a fine fill and unreadable as text on cream.
+     */
+    val readableAccent: Color
+        get() = if (this == BUTTER) ButterDeep else accent
 
     companion object {
         /** Tolerant lookup: unknown, null or legacy values fall back to Moss rather than throw. */

@@ -33,3 +33,6 @@ val SoilDeep = Color(0xFF5F5046)
 /** Night set (Phase 6) — art is generated, these are for chrome around it. */
 val NightPaper = Color(0xFF16211F)
 val NightSurface = Color(0xFF1E2A27)
+
+/** Butter read as ink. #F0C868 is a beautiful fill and unusable as text on cream. */
+val ButterDeep = Color(0xFF8A6A18)

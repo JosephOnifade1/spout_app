@@ -332,7 +332,7 @@ fun HabitCard(habit: Habit, isCheckedIn: Boolean, onClick: () -> Unit, onCheckIn
                     text = if (isCheckedIn) "Goal achieved!" else habitMeta(habit),
                     style = MaterialTheme.typography.bodyMedium,
                     color = if (isCheckedIn) {
-                        tag.accent.copy(alpha = 0.85f)
+                        tag.readableAccent
                     } else {
                         MaterialTheme.colorScheme.onSurfaceVariant
                     },
@@ -369,7 +369,7 @@ fun HabitCard(habit: Habit, isCheckedIn: Boolean, onClick: () -> Unit, onCheckIn
                         Text(
                             text = "+",
                             style = MaterialTheme.typography.titleMedium,
-                            color = tag.accent
+                            color = tag.readableAccent
                         )
                     }
                 }
@@ -378,7 +378,7 @@ fun HabitCard(habit: Habit, isCheckedIn: Boolean, onClick: () -> Unit, onCheckIn
                     Text(
                         text = "${habit.currentStreak}d",
                         style = MaterialTheme.typography.labelSmall,
-                        color = tag.accent.copy(alpha = 0.85f)
+                        color = tag.readableAccent
                     )
                 }
             }
